@@ -22,6 +22,7 @@ file_types = [  ('MS2', 'MS2'),
                 ('SQT', 'SQT'),
                 ('MS1', 'MS1')
             ]
+file_extensions = ('ms2', 'sqt', 'txt', 'ms1')
 
 class SubmitForm(Form):
 
@@ -30,7 +31,7 @@ class SubmitForm(Form):
 
     file_name = StringField('Dataset name:', [validators.Required(), validators.length(max=60)])
     data_file = FileField('Data file:', [validators.Required()])
-    file_type = RadioField('File type:', choices=file_types)
+    file_type = RadioField('File type:', [validators.Required()], choices=file_types)
     file_desc = TextAreaField('Description:', [validators.optional(), validators.length(max=500)])
     submit = SubmitField('Upload Data')
 
