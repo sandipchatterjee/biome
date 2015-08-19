@@ -16,6 +16,9 @@ from flask_wtf.file import FileField, FileRequired
 from biome import ( app, api, 
                     data,
                     )
+from tempfile import mkstemp
+from hashlib import sha224
+import shutil
 
 file_types = [  ('MS2', 'MS2'),
                 ('DTA', 'DTA'),
@@ -35,7 +38,23 @@ class SubmitForm(Form):
     file_desc = TextAreaField('Description:', [validators.optional(), validators.length(max=500)])
     submit = SubmitField('Upload Data')
 
+def get_hash(filepath):
+
+    ''' read filepath and return calculated SHA224 hex digest
+    '''
+
+    hasher = sha224()
+    with open(filepath, 'rb') as f:
+        while True:
+            byte = f.read(1)
+            if not byte:
+                break
+            hasher.update(byte)
+
+    return hasher.hexdigest()
+
 def validate_and_save(files, filetype):
+
     ''' checks to make sure each filename in "files" ends with "filetype";
         Saves files to UPLOAD_FOLDER if all are same type. Returns True for success.
     '''
@@ -45,9 +64,15 @@ def validate_and_save(files, filetype):
     if all([file_obj.filename.lower().endswith(filetype.lower()) for file_obj in files]):
         for file_obj in files:
             try:
-                new_file_path = uploads_dir+secure_filename(file_obj.filename)
-                file_obj.save(new_file_path)
+                tmp_file_path = mkstemp()[1]
+                file_obj.save(tmp_file_path)
+                hash_val = get_hash(tmp_file_path)
+
+                new_file_path = uploads_dir+hash_val+secure_filename(file_obj.filename)[-4:]
+                shutil.move(tmp_file_path, new_file_path)
+
                 app.logger.info('Saved uploaded file {} to {}'.format(file_obj.filename, new_file_path))
+
             except:
                 return False
         else:
