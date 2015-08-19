@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %} - Data{% endblock %}
+
+{% block content %}
+<h1>View and Manage Data{% block title_additions %}{% endblock %}</h1>
+<p class="lead">Choose from recently uploaded files {% block subtitle_additions %}{% endblock %}</p>
+
+<div class="row display-table">
+    <div class="col-md-7 display-cell">
+        <h3>Recent data files</h3>
+    </div>
+    <div class="col-md-1 display-cell">
+        <a href="#" class="btn btn-default{% block all_active %}{% endblock %}" role="button">All files</a>
+    </div>
+    <div class="col-md-1 display-cell">
+        <a href="#" class="btn btn-warning{% block ms1_active %}{% endblock %}" role="button">MS1 files</a>
+    </div>
+    <div class="col-md-1 display-cell">
+        <a href="#" class="btn btn-warning{% block ms2_active %}{% endblock %}" role="button">MS2 files</a>
+    </div>
+    <div class="col-md-1 display-cell">
+        <a href="#" class="btn btn-warning{% block sqt_active %}{% endblock %}" role="button">SQT files</a>
+    </div>
+    <div class="col-md-1 display-cell">
+        <a href="#" class="btn btn-warning{% block dta_active %}{% endblock %}" role="button">DTASelect files</a>
+    </div>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th class="text-center">File Name</th> <!-- slug -->
+            <th class="text-center">File Type</th> <!-- file_type -->
+            <th class="text-center">Description</th> <!-- description -->
+            <th class="text-center">Last Modified</th> <!-- last_modified -->
+            <th class="text-center"></th> <!-- view button -->
+            <th class="text-center"></th> <!-- edit button -->
+            <th class="text-center"></th> <!-- delete button -->
+        </tr>
+    </thead>
+    <tr>
+        <td class="text-center">
+            <a href="#">Document Slug</a>
+        </td>
+        <td class="text-center">file type</td>
+        <td class="text-center">description</td>
+        <td class="text-center">last_modified</td>
+        <td class="text-center">
+            <a href="#"><button type="button" class="btn btn-success btn-sm">View</button></a>
+        </td>
+        <td class="text-center">
+            <a href=""><button type="button" class="btn btn-primary btn-sm">Edit</button></a>
+        </td>
+        <td class="text-center">
+            <a href="#"><button type="button" class="btn btn-danger btn-sm">Delete</button></a>
+        </td>
+    <tr>
+</table>
+
+<br>
+
+{% block upload_block %}
+<h3>
+    Upload Dataset
+</h3>
+<form id="upload-file" method="POST" enctype="multipart/form-data">
+    {{ upload_form.csrf_token }}
+
+    <div class="row">
+        <div class="col-md-6">
+        {{ upload_form.file_name.label(class="form-label") }} 
+        <small><em>
+            (60 character max)
+        </em></small>
+        {{ upload_form.file_name(class="form-control") }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-6 col-sm-6 col-12">
+            <div class="input-group">
+                <span class="input-group-btn">
+                    <span class="btn btn-primary btn-file">
+                        Browse&hellip; {{ upload_form.data_file(class="", multiple=True) }}
+                    </span>
+                </span>
+                <input type="text" class="form-control" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-2">
+        {{ upload_form.file_type.label(class="form-label") }}
+        </div>
+        {% for subfield in upload_form.file_type %}
+            <div class="col-md-1" id="upload-form-filetype">
+            {{ subfield }}&nbsp;&nbsp;{{ subfield.label }}
+            </div>
+        {% endfor %}
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+        {{ upload_form.file_desc.label(class="form-label") }}
+        <small><em>
+            (500 character max)
+        </em></small>
+        {{ upload_form.file_desc(class="form-control", rows="5") }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+        {{ upload_form.submit(class="btn btn-primary btn-lg") }}
+        </div>
+    </div>
+
+</form>
+
+<script>
+$(document).on('change', '.btn-file :file', function () {
+    var input = $(this), numFiles = input.get(0).files ? input.get(0).files.length : 1, label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+    input.trigger('fileselect', [
+        numFiles,
+        label
+    ]);
+});
+$(document).ready(function () {
+    $('.btn-file :file').on('fileselect', function (event, numFiles, label) {
+        var input = $(this).parents('.input-group').find(':text'), log = numFiles > 1 ? numFiles + ' files selected' : label;
+        if (input.length) {
+            input.val(log);
+        } else {
+            if (log)
+                alert(log);
+        }
+    });
+});
+//@ sourceURL=pen.js
+</script>
+{% endblock %}
+
+{% endblock %}

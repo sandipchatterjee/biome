@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %} - not found{% endblock %}
+
+{% block content %}
+
+<h1><span class="glyphicon glyphicon-flash" aria-hidden="true"></span>404</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <p class="lead">
+            {{ wrong_url }} not found
+        </p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <p>
+            <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">Go Home</a>
+        </p>
+    </div>
+</div>
+
+{% endblock %}

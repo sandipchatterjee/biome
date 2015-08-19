@@ -4,9 +4,11 @@ import json
 from flask import ( render_template, jsonify, 
                     Blueprint, current_app,
                     request
-                )
-from biome import app, api
-from biome.views_plots import *
+                    )
+from biome import ( app, api, 
+                    data, views_plots, 
+                    views_documents
+                    )
 
 ## API/Blueprint:
 
