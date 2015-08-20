@@ -16,5 +16,5 @@ _Python-based web application for metaproteomic analysis of microbiome samples_
 * Create a virtualenv: `$ pyvenv venv`
 * Activate virtualenv: `$ source venv/bin/activate`
 * Install dependencies: `$ pip install -r requirements.txt`
-* Run server: `(venv) $ python runserver.py`
+* Run (dev) server: `(venv) $ python manage.py runserver`
 
