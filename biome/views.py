@@ -7,7 +7,7 @@ from flask import ( render_template, jsonify,
                     )
 from biome import ( app, api, 
                     data, views_plots, 
-                    views_documents
+                    views_documents, db
                     )
 
 ## API/Blueprint:

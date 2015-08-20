@@ -14,7 +14,7 @@ from wtforms import (   StringField, SubmitField,
 from werkzeug import secure_filename
 from flask_wtf.file import FileField, FileRequired
 from biome import ( app, api, 
-                    data,
+                    data, db
                     )
 from tempfile import mkstemp
 from hashlib import sha224
@@ -53,15 +53,36 @@ def get_hash(filepath):
 
     return hasher.hexdigest()
 
-def validate_and_save(files, filetype):
+def validate_and_save(files, upload_form):
 
     ''' checks to make sure each filename in "files" ends with "filetype";
         Saves files to UPLOAD_FOLDER if all are same type. Returns True for success.
     '''
 
+    dataset_name = upload_form.file_name.data
+    filetype = upload_form.file_type.data.lower()
+    if filetype == 'dta':
+        file_extension = 'txt'
+    else:
+        file_extension = filetype
+    description = upload_form.file_desc.data
     uploads_dir = app.config['UPLOAD_FOLDER']+'/'
 
-    if all([file_obj.filename.lower().endswith(filetype.lower()) for file_obj in files]):
+    # check to make sure all files are of same type
+    if all([file_obj.filename.lower().endswith(file_extension) for file_obj in files]):
+
+        save_new_dataset(dataset_name, description)
+        if filetype == 'ms2':
+            save_new_file_to_db = save_new_ms2_file
+        elif filetype == 'dta':
+            save_new_file_to_db = save_new_dta_file
+        elif filetype == 'sqt':
+            save_new_file_to_db = save_new_sqt_file
+        elif filetype == 'ms1':
+            save_new_file_to_db = save_new_ms1_file
+        else: # unsupported filetype
+            return False
+        
         for file_obj in files:
             try:
                 tmp_file_path = mkstemp()[1]
@@ -73,10 +94,69 @@ def validate_and_save(files, filetype):
 
                 app.logger.info('Saved uploaded file {} to {}'.format(file_obj.filename, new_file_path))
 
+                save_new_file_to_db(dataset_id, new_file_path)
+
             except:
                 return False
         else:
             return True # for loop completed successfully
+
+def save_new_dataset(dataset_name, description):
+
+    ''' Creates a new row in the Dataset db table
+    '''
+
+    app.logger.info('Saved new dataset {} to database'.format(dataset_name))
+
+    raise NotImplementedError('Saving datasets not yet implemented')
+
+    return True # should return dataset ID from db table
+
+def save_new_ms2_file(dataset_id, file_path):
+
+    ''' Creates a new row in the ms2_file db table
+    '''
+
+    raise NotImplementedError('MS2 file uploads not yet implemented')
+
+    app.logger.info('Saved new MS2 file {} to database'.format(file_path))
+
+    return True # should return new MS2_file_id
+
+def save_new_dta_file(dataset_id, file_path):
+
+    ''' Creates a new row in the dta_file db table
+    '''
+
+    # parse DTA file for 'flags' field... (something like '-p 2 -m 0 --trypstat')
+
+    raise NotImplementedError
+
+    app.logger.info('Saved new DTA file {} to database'.format(file_path))
+
+    return True # should return new dta_file_id
+
+def save_new_sqt_file(dataset_id, file_path):
+
+    ''' Creates a new row in the sqt_file db table
+    '''
+
+    raise NotImplementedError
+
+    app.logger.info('Saved new SQT file {} to database'.format(file_path))
+
+    return True # should return new SQT_file_id
+
+def save_new_ms1_file(dataset_id, file_path):
+
+    ''' Creates a new row in the ms1_file db table
+    '''
+
+    raise NotImplementedError
+
+    app.logger.info('Saved new MS1 file {} to database'.format(file_path))
+
+    return True # should return new MS1_file_id
 
 @data.route('/', methods=('GET', 'POST'))
 def document_index():
@@ -88,7 +168,7 @@ def document_index():
         filenames = [file_obj.filename for file_obj in files]
         print(filenames)
 
-        if not validate_and_save(files, upload_form.file_type.data):
+        if not validate_and_save(files, upload_form):
             app.logger.error('Saving uploaded dataset {} failed'.format(', '.join(filenames)))
             filenames = None
 
@@ -101,9 +181,7 @@ def document_index():
 def upload_view():
     ## convert this to an ajax response
 
-    if request.args.get('filenames', None):
-        # filenames = ', '.join(request.args['filenames'])
-        filenames = request.args['filenames']
+    filenames = request.args.get('filenames', None)
 
     return 'Successfully uploaded files: {}'.format(filenames)
 
