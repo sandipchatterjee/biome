@@ -12,7 +12,6 @@ from biome import ( app, api,
 
 ## API/Blueprint:
 
-
 @api.route('/json')
 def json_api():
 
@@ -48,5 +47,4 @@ def test_API():
     json_obj['new'] = 3
     
     return json.dumps(json_obj)
-
 
