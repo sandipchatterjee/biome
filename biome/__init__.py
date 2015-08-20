@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
 import os
-from flask import Flask, Blueprint, render_template, request
+from flask import ( Blueprint, 
+                    Flask, 
+                    render_template, 
+                    request, 
+                    )
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_wtf import Form
 
