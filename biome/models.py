@@ -17,9 +17,9 @@ class Dataset(db.Model):
     description = db.Column(db.String(500))
     uploaded_time = db.Column(db.DateTime)
 
-    def __init__(self, username, email):
-        self.username = username
-        self.email = email
+    def __init__(self, name, description):
+        self.name = name
+        self.description = description
         self.uploaded_time = datetime.now()
 
     def __repr__(self):
