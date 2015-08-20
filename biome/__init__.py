@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 from flask import Flask, Blueprint, render_template, request
 from flask_wtf import Form
 
@@ -17,3 +18,8 @@ def not_found(error):
 app.register_blueprint(api, url_prefix='/api')
 app.register_blueprint(data, url_prefix='/data')
 
+app.config['SECRET_KEY'] = 'secret_key_from_env'
+UPLOAD_FOLDER = 'biome/data_files'
+app.config['UPLOAD_FOLDER'] = os.getcwd()+'/'+UPLOAD_FOLDER
+
+app.config['SQLALCHEMY_DATABASE_URI'] = ''
