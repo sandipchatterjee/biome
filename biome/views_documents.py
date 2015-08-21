@@ -316,10 +316,6 @@ def document_index():
         session['sqt_data_ids'] = sqt_data_ids
         session['dta_data_ids'] = dta_data_ids
 
-        ####### END (return view function with Dataset ID, DBSearch ID, File IDs)
-
-        # return redirect(url_for('data.upload_view', filenames=filenames, file_ids=file_ids, file_type=upload_form.file_type.data.lower()))
-
         return redirect(url_for('data.upload_view'))
 
     return render_template('data/document_index.html', upload_form=upload_form)
