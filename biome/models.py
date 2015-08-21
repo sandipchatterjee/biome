@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-from biome import ( app, db,
-                )
+from biome import ( app, 
+                    db,
+                    )
 from sqlalchemy.dialects import postgresql
 from datetime import datetime
 
@@ -16,14 +17,18 @@ class Dataset(db.Model):
     name = db.Column(db.String(60))
     description = db.Column(db.String(500))
     uploaded_time = db.Column(db.DateTime)
+    deleted = db.Column(db.Boolean)
+    dbsearches = db.relationship('DBSearch', backref='parent_dataset', lazy='dynamic')
+    ms2files = db.relationship('MS2File', backref='parent_dataset', lazy='dynamic')
 
     def __init__(self, name, description):
         self.name = name
         self.description = description
+        self.deleted = False # never actually delete information... just set flag to True
         self.uploaded_time = datetime.now()
 
     def __repr__(self):
-        return '<Dataset ID: {}>' % self.username
+        return '<Dataset ID: {}>'.format(self.name)
 
 class DBSearch(db.Model):
 
@@ -36,16 +41,20 @@ class DBSearch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     params = db.Column(postgresql.JSON)
     start_time = db.Column(db.DateTime)
+    deleted = db.Column(db.Boolean)
 
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'))
-    dataset = db.relationship('Dataset', backref=db.backref('ms2file', lazy='dynamic'))
 
-    def __init__(self):
+    sqtfiles = db.relationship('SQTFile', backref='dbsearch', lazy='dynamic')
+    dtafiles = db.relationship('DTAFile', backref='dbsearch', lazy='dynamic')
+
+    def __init__(self, dataset):
         self.start_time = datetime.now()
         self.dataset_id = dataset
+        self.deleted = False # never actually delete information... just set flag to True
 
     def __repr__(self):
-        return '<Search ID: {}>'.format(self.id)
+        return '<Search ID: {} // Dataset: {}>'.format(self.id, self.dataset_id)
 
 class MS2File(db.Model):
 
@@ -57,15 +66,16 @@ class MS2File(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     file_path = db.Column(db.String(500)) # one dataset may have multiple rows in table (one per MS2 file)
+    deleted = db.Column(db.Boolean)
 
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'))
-    dataset = db.relationship('Dataset', backref=db.backref('ms2file', lazy='dynamic'))
     created_time = db.Column(db.DateTime)
 
     def __init__(self, file_path, dataset_id):
         self.file_path = file_path
         self.dataset_id = dataset
         self.created_time = datetime.now()
+        self.deleted = False # never actually delete information... just set flag to True
 
     def __repr__(self):
         return '<MS2File ID: {} // File Path: {} // Dataset: {}>'.format(self.id, self.file_path, self.dataset_id)
@@ -83,13 +93,14 @@ class SQTFile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     file_path = db.Column(db.String(500)) # one dataset may have multiple rows in table (one per MS2 file)
     dbsearch_id = db.Column(db.Integer, db.ForeignKey('db_search.id'))
-    dbsearch = db.relationship('db_search', backref=db.backref('sqtfile', lazy='dynamic'))
     created_time = db.Column(db.DateTime)
+    deleted = db.Column(db.Boolean)
 
     def __init__(self, file_path, dbsearch_id):
         self.file_path = file_path
         self.dbsearch_id = dbsearch_id
         self.created_time = datetime.now()
+        self.deleted = False # never actually delete information... just set flag to True
 
     def __repr__(self):
         return '<SQTFile ID: {} // File Path: {} // DBSearch ID: {}>'.format(self.id, self.file_path, self.dbsearch_id)
@@ -105,8 +116,8 @@ class DTAFile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     file_path = db.Column(db.String(500)) # one dataset may have multiple rows in table (one per MS2 file)
     dbsearch_id = db.Column(db.Integer, db.ForeignKey('db_search.id'))
-    dbsearch = db.relationship('db_search', backref=db.backref('dtafile', lazy='dynamic'))
     created_time = db.Column(db.DateTime)
+    deleted = db.Column(db.Boolean)
 
     # DTASelect flags used for filtering, e.g. '-p 2 -m 0 --trypstat'
     flags = db.Column(db.String(100))
@@ -115,6 +126,7 @@ class DTAFile(db.Model):
         self.file_path = file_path
         self.dbsearch_id = dbsearch_id
         self.created_time = datetime.now()
+        self.deleted = False # never actually delete information... just set flag to True
 
     def __repr__(self):
         return '<DTAFile ID: {} // File Path: {} // DBSearch ID: {}>'.format(self.id, self.file_path, self.dbsearch_id)

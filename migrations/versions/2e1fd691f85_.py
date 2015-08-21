@@ -1,13 +1,13 @@
 """empty message
 
-Revision ID: 387f7a8a567
+Revision ID: 2e1fd691f85
 Revises: None
-Create Date: 2015-08-20 15:23:42.283615
+Create Date: 2015-08-20 22:30:29.132004
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '387f7a8a567'
+revision = '2e1fd691f85'
 down_revision = None
 
 from alembic import op
@@ -21,12 +21,14 @@ def upgrade():
     sa.Column('name', sa.String(length=60), nullable=True),
     sa.Column('description', sa.String(length=500), nullable=True),
     sa.Column('uploaded_time', sa.DateTime(), nullable=True),
+    sa.Column('deleted', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('db_search',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('params', postgresql.JSON(), nullable=True),
     sa.Column('start_time', sa.DateTime(), nullable=True),
+    sa.Column('deleted', sa.Boolean(), nullable=True),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -34,6 +36,7 @@ def upgrade():
     op.create_table('ms2_file',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('file_path', sa.String(length=500), nullable=True),
+    sa.Column('deleted', sa.Boolean(), nullable=True),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('created_time', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
@@ -44,6 +47,7 @@ def upgrade():
     sa.Column('file_path', sa.String(length=500), nullable=True),
     sa.Column('dbsearch_id', sa.Integer(), nullable=True),
     sa.Column('created_time', sa.DateTime(), nullable=True),
+    sa.Column('deleted', sa.Boolean(), nullable=True),
     sa.Column('flags', sa.String(length=100), nullable=True),
     sa.ForeignKeyConstraint(['dbsearch_id'], ['db_search.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -53,6 +57,7 @@ def upgrade():
     sa.Column('file_path', sa.String(length=500), nullable=True),
     sa.Column('dbsearch_id', sa.Integer(), nullable=True),
     sa.Column('created_time', sa.DateTime(), nullable=True),
+    sa.Column('deleted', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['dbsearch_id'], ['db_search.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
