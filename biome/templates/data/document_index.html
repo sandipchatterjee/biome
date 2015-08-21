@@ -89,16 +89,6 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-2">
-        {{ upload_form.file_type.label(class="form-label") }}
-        </div>
-        {% for subfield in upload_form.file_type %}
-            <div class="col-md-1" id="upload-form-filetype">
-            {{ subfield }}&nbsp;&nbsp;{{ subfield.label }}
-            </div>
-        {% endfor %}
-    </div>
-    <div class="row">
         <div class="col-md-6">
         {{ upload_form.file_desc.label(class="form-label") }}
         <small><em>
