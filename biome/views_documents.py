@@ -28,6 +28,7 @@ from biome import ( api,
                     )
 from tempfile import mkstemp
 from hashlib import sha224
+import re
 import shutil
 
 file_types = [  ('MS2', 'MS2'),
@@ -186,11 +187,34 @@ def save_new_ms1_file(dataset_id, file_path):
 
     # return new_ms1_file.id
 
+def check_file_types(filename_list):
+
+    ''' Checks incoming files for correct file extensions
+        and file names. Returns True if all OK, False if not.
+    '''
+
+    accepted_file_extensions = {'ms2',
+                                'sqt',
+                                'txt', # DTASelect-filter.txt
+                                'ms1',
+                                }
+
+    # check to make sure all filenames end in a correct extension
+    if not all([filename[-3:].lower() in accepted_file_extensions for filename in filename_list]):
+        return False
+
+    # check to make sure all '.txt' files also end with 'DTASelect-filter.txt'
+    potential_dta_files = [filename for filename in filename_list if filename.endswith('.txt')]
+    if not all([re.search(r'^.+DTASelect-filter.txt$', filename) for filename in potential_dta_files]):
+        return False
+
+    return True
+
 @data.route('/', methods=('GET', 'POST'))
 def document_index():
     upload_form = SubmitForm()
 
-    if upload_form.validate_on_submit():
+    if upload_form.validate_on_submit() and check_file_types(request.files.getlist('data_file')):
 
         files = request.files.getlist('data_file')
         filenames = [file_obj.filename for file_obj in files]
