@@ -42,7 +42,7 @@ class SubmitForm(Form):
     '''SubmitForm is a WTForm Form object for uploading data files
     '''
 
-    file_name = StringField('Dataset name:', [validators.Required(), validators.length(max=60)])
+    dataset_name = StringField('Dataset name:', [validators.Required(), validators.length(max=60)])
     data_file = FileField('Data file:', [validators.Required()])
     file_type = RadioField('File type:', [validators.Required()], choices=file_types)
     file_desc = TextAreaField('Description:', [validators.optional(), validators.length(max=500)])
@@ -66,10 +66,12 @@ def get_hash(filepath):
 def validate_and_save(files, upload_form):
 
     ''' checks to make sure each filename in "files" ends with "filetype";
-        Saves files to UPLOAD_FOLDER if all are same type. Returns True for success.
+        Saves files to UPLOAD_FOLDER if all are same type. 
+        Returns file_ids (with new file IDs from database) if successful.
+        Returns False or file_ids=[] if unsuccessful.
     '''
 
-    dataset_name = upload_form.file_name.data
+    dataset_name = upload_form.dataset_name.data
     filetype = upload_form.file_type.data.lower()
     if filetype == 'dta':
         file_extension = 'txt'
@@ -79,59 +81,70 @@ def validate_and_save(files, upload_form):
     uploads_dir = app.config['UPLOAD_FOLDER']+'/'
 
     # check to make sure all files are of same type
-    if all([file_obj.filename.lower().endswith(file_extension) for file_obj in files]):
+    if not all([file_obj.filename.lower().endswith(file_extension) for file_obj in files]):
+        return False
 
-        save_new_dataset(dataset_name, description)
-        if filetype == 'ms2':
-            save_new_file_to_db = save_new_ms2_file
-        elif filetype == 'dta':
-            save_new_file_to_db = save_new_dta_file
-        elif filetype == 'sqt':
-            save_new_file_to_db = save_new_sqt_file
-        elif filetype == 'ms1':
-            save_new_file_to_db = save_new_ms1_file
-        else: # unsupported filetype
+    try:
+        dataset_id = save_new_dataset(dataset_name, description)
+    except: # look up database-specific exceptions for here
+        return False
+
+    if filetype == 'ms2':
+        save_new_file_to_db = save_new_ms2_file
+    elif filetype == 'dta':
+        save_new_file_to_db = save_new_dta_file
+    elif filetype == 'sqt':
+        save_new_file_to_db = save_new_sqt_file
+    elif filetype == 'ms1':
+        save_new_file_to_db = save_new_ms1_file
+    else: # unsupported filetype
+        return False
+
+    file_ids = []
+    
+    for file_obj in files:
+        try:
+            tmp_file_path = mkstemp()[1]
+            file_obj.save(tmp_file_path)
+            hash_val = get_hash(tmp_file_path)
+
+            new_file_path = uploads_dir+hash_val+secure_filename(file_obj.filename)[-4:]
+            shutil.move(tmp_file_path, new_file_path)
+
+            app.logger.info('Saved uploaded file {} to {}'.format(file_obj.filename, new_file_path))
+
+            file_ids.append(save_new_file_to_db(dataset_id, new_file_path))
+
+        except:
             return False
-        
-        for file_obj in files:
-            try:
-                tmp_file_path = mkstemp()[1]
-                file_obj.save(tmp_file_path)
-                hash_val = get_hash(tmp_file_path)
-
-                new_file_path = uploads_dir+hash_val+secure_filename(file_obj.filename)[-4:]
-                shutil.move(tmp_file_path, new_file_path)
-
-                app.logger.info('Saved uploaded file {} to {}'.format(file_obj.filename, new_file_path))
-
-                save_new_file_to_db(dataset_id, new_file_path)
-
-            except:
-                return False
-        else:
-            return True # for loop completed successfully
+    else: # for loop completed successfully
+        return file_ids
 
 def save_new_dataset(dataset_name, description):
 
     ''' Creates a new row in the Dataset db table
     '''
 
+    new_dataset = models.Dataset(dataset_name, description)
+    db.session.add(new_dataset)
+    db.session.commit()
+
     app.logger.info('Saved new dataset {} to database'.format(dataset_name))
 
-    raise NotImplementedError('Saving datasets not yet implemented')
-
-    return True # should return dataset ID from db table
+    return new_dataset.id
 
 def save_new_ms2_file(dataset_id, file_path):
 
     ''' Creates a new row in the ms2_file db table
     '''
 
-    raise NotImplementedError('MS2 file uploads not yet implemented')
+    new_ms2_file = models.MS2File(file_path, dataset_id)
+    db.session.add(new_ms2_file)
+    db.session.commit()
 
-    app.logger.info('Saved new MS2 file {} to database'.format(file_path))
+    app.logger.info('Saved new MS2 file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
 
-    return True # should return new MS2_file_id
+    return new_ms2_file.id
 
 def save_new_dta_file(dataset_id, file_path):
 
@@ -140,22 +153,24 @@ def save_new_dta_file(dataset_id, file_path):
 
     # parse DTA file for 'flags' field... (something like '-p 2 -m 0 --trypstat')
 
-    raise NotImplementedError
+    new_dta_file = models.DTAFile(file_path, dataset_id)
+    db.session.add(new_dta_file)
+    db.session.commit()
 
-    app.logger.info('Saved new DTA file {} to database'.format(file_path))
+    app.logger.info('Saved new DTA file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
 
-    return True # should return new dta_file_id
+    return new_dta_file.id
 
 def save_new_sqt_file(dataset_id, file_path):
 
     ''' Creates a new row in the sqt_file db table
     '''
 
-    raise NotImplementedError
+    new_sqt_file = models.SQTFile(file_path, dataset_id)
+    db.session.add(new_sqt_file)
+    db.session.commit()
 
-    app.logger.info('Saved new SQT file {} to database'.format(file_path))
-
-    return True # should return new SQT_file_id
+    app.logger.info('Saved new SQT file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
 
 def save_new_ms1_file(dataset_id, file_path):
 
@@ -163,10 +178,13 @@ def save_new_ms1_file(dataset_id, file_path):
     '''
 
     raise NotImplementedError
+    # new_ms1_file = models.MS1File(file_path, dataset_id)
+    # db.session.add(new_ms1_file)
+    # db.session.commit()
 
-    app.logger.info('Saved new MS1 file {} to database'.format(file_path))
+    # app.logger.info('Saved new MS1 file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
 
-    return True # should return new MS1_file_id
+    # return new_ms1_file.id
 
 @data.route('/', methods=('GET', 'POST'))
 def document_index():
@@ -178,11 +196,13 @@ def document_index():
         filenames = [file_obj.filename for file_obj in files]
         print(filenames)
 
-        if not validate_and_save(files, upload_form):
-            app.logger.error('Saving uploaded dataset {} failed'.format(', '.join(filenames)))
-            filenames = None
+        file_ids = validate_and_save(files, upload_form)
 
-        return redirect(url_for('data.upload_view', filenames=filenames))
+        if not file_ids:
+            app.logger.error('Saving uploaded dataset {} failed'.format(', '.join(filenames)))
+            file_ids = None
+
+        return redirect(url_for('data.upload_view', filenames=filenames, file_ids=file_ids, file_type=upload_form.file_type.data.lower()))
 
     return render_template('data/document_index.html', upload_form=upload_form)
 
@@ -192,6 +212,8 @@ def upload_view():
     ## convert this to an ajax response
 
     filenames = request.args.get('filenames', None)
+    file_ids = request.args.get('file_ids', None)
+    file_type = request.args.get('file_type', None)
 
     return 'Successfully uploaded files: {}'.format(filenames)
 

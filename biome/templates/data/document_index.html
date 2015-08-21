@@ -8,7 +8,7 @@
 
 <div class="row display-table">
     <div class="col-md-7 display-cell">
-        <h3>Recent data files</h3>
+        <h3>Recent Datasets</h3>
     </div>
     <div class="col-md-1 display-cell">
         <a href="#" class="btn btn-default{% block all_active %}{% endblock %}" role="button">All files</a>
@@ -30,7 +30,7 @@
 <table class="table table-striped">
     <thead>
         <tr>
-            <th class="text-center">File Name</th> <!-- slug -->
+            <th class="text-center">Dataset Name</th> <!-- slug -->
             <th class="text-center">File Type</th> <!-- file_type -->
             <th class="text-center">Description</th> <!-- description -->
             <th class="text-center">Last Modified</th> <!-- last_modified -->
@@ -69,11 +69,11 @@
 
     <div class="row">
         <div class="col-md-6">
-        {{ upload_form.file_name.label(class="form-label") }} 
+        {{ upload_form.dataset_name.label(class="form-label") }} 
         <small><em>
             (60 character max)
         </em></small>
-        {{ upload_form.file_name(class="form-control") }}
+        {{ upload_form.dataset_name(class="form-control") }}
         </div>
     </div>
     <div class="row">

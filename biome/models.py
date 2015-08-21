@@ -73,7 +73,7 @@ class MS2File(db.Model):
 
     def __init__(self, file_path, dataset_id):
         self.file_path = file_path
-        self.dataset_id = dataset
+        self.dataset_id = dataset_id
         self.created_time = datetime.now()
         self.deleted = False # never actually delete information... just set flag to True
 
