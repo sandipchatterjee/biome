@@ -1,13 +1,13 @@
 """empty message
 
-Revision ID: 2e1fd691f85
+Revision ID: 377c0e15f9a
 Revises: None
-Create Date: 2015-08-20 22:30:29.132004
+Create Date: 2015-08-21 14:42:11.542316
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '2e1fd691f85'
+revision = '377c0e15f9a'
 down_revision = None
 
 from alembic import op
@@ -30,6 +30,15 @@ def upgrade():
     sa.Column('start_time', sa.DateTime(), nullable=True),
     sa.Column('deleted', sa.Boolean(), nullable=True),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('ms1_file',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('file_path', sa.String(length=500), nullable=True),
+    sa.Column('deleted', sa.Boolean(), nullable=True),
+    sa.Column('dataset_id', sa.Integer(), nullable=True),
+    sa.Column('created_time', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -69,6 +78,7 @@ def downgrade():
     op.drop_table('sqt_file')
     op.drop_table('dta_file')
     op.drop_table('ms2_file')
+    op.drop_table('ms1_file')
     op.drop_table('db_search')
     op.drop_table('dataset')
     ### end Alembic commands ###

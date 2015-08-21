@@ -6,6 +6,7 @@ from flask import ( Blueprint,
                     redirect, 
                     render_template, 
                     request, 
+                    session, 
                     url_for, 
                     )
 from flask.ext.wtf import Form
@@ -45,7 +46,7 @@ class SubmitForm(Form):
 
     dataset_name = StringField('Dataset name:', [validators.Required(), validators.length(max=60)])
     data_file = FileField('Data file:', [validators.Required()])
-    file_desc = TextAreaField('Description:', [validators.optional(), validators.length(max=500)])
+    dataset_desc = TextAreaField('Description:', [validators.optional(), validators.length(max=500)])
     submit = SubmitField('Upload Data')
 
 def get_hash(filepath):
@@ -62,6 +63,26 @@ def get_hash(filepath):
             hasher.update(byte)
 
     return hasher.hexdigest()
+
+def save_new_file(file_obj):
+
+    ''' Saves a new file (specified by file_obj) to new_file_path by calculating
+        its SHA224 hash and saving as 'SHA224_digest.[file_extension]'
+
+        Returns new_file_path for new saved file.
+    '''
+
+    uploads_dir = app.config['UPLOAD_FOLDER']+'/'
+    tmp_file_path = mkstemp()[1]
+    file_obj.save(tmp_file_path)
+    hash_val = get_hash(tmp_file_path)
+
+    new_file_path = uploads_dir+hash_val+secure_filename(file_obj.filename)[-4:]
+    shutil.move(tmp_file_path, new_file_path)
+
+    app.logger.info('Saved uploaded file {} to {}'.format(file_obj.filename, new_file_path))
+
+    return new_file_path
 
 def validate_and_save(files, upload_form):
 
@@ -133,7 +154,33 @@ def save_new_dataset(dataset_name, description):
 
     return new_dataset.id
 
-def save_new_ms2_file(dataset_id, file_path):
+def save_new_dbsearch(dataset_id, params=None):
+
+    ''' Creates a new DBSearch row
+    '''
+
+    new_dbsearch = models.DBSearch(dataset_id, params)
+    db.session.add(new_dbsearch)
+    db.session.commit()
+
+    app.logger.info('Saved new DBSearch {} for Dataset ID {} to database'.format(new_dbsearch.id, dataset_id))
+
+    return new_dbsearch.id
+
+def save_new_ms1_record(dataset_id, file_path):
+
+    ''' Creates a new row in the ms1_file db table
+    '''
+
+    new_ms1_file = models.MS1File(file_path, dataset_id)
+    db.session.add(new_ms1_file)
+    db.session.commit()
+
+    app.logger.info('Saved new MS1 file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
+
+    return new_ms1_file.id
+
+def save_new_ms2_record(dataset_id, file_path):
 
     ''' Creates a new row in the ms2_file db table
     '''
@@ -146,7 +193,7 @@ def save_new_ms2_file(dataset_id, file_path):
 
     return new_ms2_file.id
 
-def save_new_dta_file(dataset_id, file_path):
+def save_new_dta_record(dataset_id, file_path):
 
     ''' Creates a new row in the dta_file db table
     '''
@@ -161,7 +208,7 @@ def save_new_dta_file(dataset_id, file_path):
 
     return new_dta_file.id
 
-def save_new_sqt_file(dataset_id, file_path):
+def save_new_sqt_record(dataset_id, file_path):
 
     ''' Creates a new row in the sqt_file db table
     '''
@@ -172,19 +219,7 @@ def save_new_sqt_file(dataset_id, file_path):
 
     app.logger.info('Saved new SQT file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
 
-def save_new_ms1_file(dataset_id, file_path):
-
-    ''' Creates a new row in the ms1_file db table
-    '''
-
-    raise NotImplementedError
-    # new_ms1_file = models.MS1File(file_path, dataset_id)
-    # db.session.add(new_ms1_file)
-    # db.session.commit()
-
-    # app.logger.info('Saved new MS1 file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
-
-    # return new_ms1_file.id
+    return new_sqt_file.id
 
 def check_file_types(filename_list):
 
@@ -204,7 +239,7 @@ def check_file_types(filename_list):
 
     # check to make sure all '.txt' files also end with 'DTASelect-filter.txt'
     potential_dta_files = [filename for filename in filename_list if filename.endswith('.txt')]
-    if not all([re.search(r'^.+DTASelect-filter.txt$', filename) for filename in potential_dta_files]):
+    if not all([re.search(r'^.*DTASelect-filter.txt$', filename) for filename in potential_dta_files]):
         return False
 
     return True
@@ -222,11 +257,66 @@ def document_index():
         if not check_file_types(filenames):
             return 'Can\'t upload all of those file types... {}'.format(', '.join(filenames)) # this should return a redirect to a different view/AJAX response
 
-        # file_ids = validate_and_save(files, upload_form)
+        # save new uploaded file data
+        try:
+            ms1_file_paths = [save_new_file(file_obj) for file_obj in files if file_obj.filename.endswith('.ms1')]
+            ms2_file_paths = [save_new_file(file_obj) for file_obj in files if file_obj.filename.endswith('.ms2')]
+            sqt_file_paths = [save_new_file(file_obj) for file_obj in files if file_obj.filename.endswith('.sqt')]
+            dta_file_paths = [save_new_file(file_obj) for file_obj in files if file_obj.filename.endswith('.txt')]
+        except:
+            app.logger.error('Error saving new files')
+            return 'Error saving new files'
 
-        # if not file_ids:
-        #     app.logger.error('Saving uploaded dataset {} failed'.format(', '.join(filenames)))
-        #     file_ids = None
+        dataset_id = None
+        dbsearch_id = None
+        ms1_data_ids = []
+        ms2_data_ids = []
+        sqt_data_ids = []
+        dta_data_ids = []
+
+        # save new dataset in database
+        dataset_name = upload_form.dataset_name.data
+        dataset_description = upload_form.dataset_desc.data
+        try:
+            dataset_id = save_new_dataset(dataset_name, dataset_description)
+        except:
+            app.logger.error('Error creating new dataset {}'.format(dataset_name))
+            return 'Error creating new dataset {}'.format(dataset_name) # should return a redirect/view
+
+        if ms1_file_paths or ms2_file_paths:
+            try:
+                # save MS1 and MS2 records to database
+                ms1_data_ids = [save_new_ms1_record(dataset_id, ms1_file_path) for ms1_file_path in ms1_file_paths]
+                ms2_data_ids = [save_new_ms2_record(dataset_id, ms2_file_path) for ms2_file_path in ms2_file_paths]
+            except:
+                # log database error and return
+                app.logger.error('Error saving new MS1/MS2 file info to database')
+                return 'Error saving new MS1/MS2 file info to database'
+
+        if sqt_file_paths or dta_file_paths:
+            try:
+                dbsearch_id = save_new_dbsearch(dataset_id) # create DBSearch
+            except:
+                # log DB error and return
+                app.logger.error('Error saving new MS1/MS2 file info to database')
+                return 'Error saving new MS1/MS2 file info to database'
+
+            try:
+                # save SQT and DTA records to database
+                sqt_data_ids = [save_new_sqt_record(dataset_id, sqt_file_path) for sqt_file_path in sqt_file_paths]
+                dta_data_ids = [save_new_dta_record(dataset_id, dta_file_path) for dta_file_path in dta_file_paths]
+            except:
+                app.logger.error('Error saving new SQT/DTA file info to database')
+                return 'Error saving new SQT/DTA file info to database'
+
+        session['dataset_id'] = dataset_id
+        session['dbsearch_id'] = dbsearch_id
+        session['ms1_data_ids'] = ms1_data_ids
+        session['ms2_data_ids'] = ms2_data_ids
+        session['sqt_data_ids'] = sqt_data_ids
+        session['dta_data_ids'] = dta_data_ids
+
+        ####### END (return view function with Dataset ID, DBSearch ID, File IDs)
 
         # return redirect(url_for('data.upload_view', filenames=filenames, file_ids=file_ids, file_type=upload_form.file_type.data.lower()))
 
@@ -239,10 +329,17 @@ def document_index():
 def upload_view():
     ## convert this to an ajax response
 
-    # filenames = request.args.get('filenames', None)
-    # file_ids = request.args.get('file_ids', None)
-    # file_type = request.args.get('file_type', None)
-
-    # return 'Successfully uploaded files: {}'.format(filenames)
-    return 'Successfully uploaded files'
+    return '''Successfully uploaded files!
+            <br>dataset_id: {}
+            <br>dbsearch_id: {}
+            <br>ms1_data_ids: {}
+            <br>ms2_data_ids: {}
+            <br>sqt_data_ids: {}
+            <br>dta_data_ids: {}'''.format( session['dataset_id'], 
+                                            session['dbsearch_id'], 
+                                            session['ms1_data_ids'], 
+                                            session['ms2_data_ids'],
+                                            session['sqt_data_ids'],
+                                            session['dta_data_ids']
+                                            )
 
