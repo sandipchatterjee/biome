@@ -214,19 +214,24 @@ def check_file_types(filename_list):
 def document_index():
     upload_form = SubmitForm()
 
-    if upload_form.validate_on_submit() and check_file_types(request.files.getlist('data_file')):
+    if upload_form.validate_on_submit():
 
         files = request.files.getlist('data_file')
         filenames = [file_obj.filename for file_obj in files]
-        print(filenames)
+        app.logger.info('User trying to upload files {}'.format(', '.join(filenames)))
 
-        file_ids = validate_and_save(files, upload_form)
+        if not check_file_types(filenames):
+            return 'Can\'t upload all of those file types... {}'.format(', '.join(filenames)) # this should return a redirect to a different view/AJAX response
 
-        if not file_ids:
-            app.logger.error('Saving uploaded dataset {} failed'.format(', '.join(filenames)))
-            file_ids = None
+        # file_ids = validate_and_save(files, upload_form)
 
-        return redirect(url_for('data.upload_view', filenames=filenames, file_ids=file_ids, file_type=upload_form.file_type.data.lower()))
+        # if not file_ids:
+        #     app.logger.error('Saving uploaded dataset {} failed'.format(', '.join(filenames)))
+        #     file_ids = None
+
+        # return redirect(url_for('data.upload_view', filenames=filenames, file_ids=file_ids, file_type=upload_form.file_type.data.lower()))
+
+        return redirect(url_for('data.upload_view'))
 
     return render_template('data/document_index.html', upload_form=upload_form)
 
@@ -235,9 +240,10 @@ def document_index():
 def upload_view():
     ## convert this to an ajax response
 
-    filenames = request.args.get('filenames', None)
-    file_ids = request.args.get('file_ids', None)
-    file_type = request.args.get('file_type', None)
+    # filenames = request.args.get('filenames', None)
+    # file_ids = request.args.get('file_ids', None)
+    # file_type = request.args.get('file_type', None)
 
-    return 'Successfully uploaded files: {}'.format(filenames)
+    # return 'Successfully uploaded files: {}'.format(filenames)
+    return 'Successfully uploaded files'
 
