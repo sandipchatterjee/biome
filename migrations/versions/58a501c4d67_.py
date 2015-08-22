@@ -1,13 +1,13 @@
 """empty message
 
-Revision ID: 377c0e15f9a
+Revision ID: 58a501c4d67
 Revises: None
-Create Date: 2015-08-21 14:42:11.542316
+Create Date: 2015-08-21 17:17:19.123579
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '377c0e15f9a'
+revision = '58a501c4d67'
 down_revision = None
 
 from alembic import op
@@ -46,6 +46,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('file_path', sa.String(length=500), nullable=True),
     sa.Column('deleted', sa.Boolean(), nullable=True),
+    sa.Column('scans', sa.Integer(), nullable=True),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('created_time', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
@@ -66,6 +67,7 @@ def upgrade():
     sa.Column('file_path', sa.String(length=500), nullable=True),
     sa.Column('dbsearch_id', sa.Integer(), nullable=True),
     sa.Column('created_time', sa.DateTime(), nullable=True),
+    sa.Column('scans', sa.Integer(), nullable=True),
     sa.Column('deleted', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['dbsearch_id'], ['db_search.id'], ),
     sa.PrimaryKeyConstraint('id')

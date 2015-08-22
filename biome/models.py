@@ -93,7 +93,7 @@ class MS2File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     file_path = db.Column(db.String(500)) # one dataset may have multiple rows in table (one per MS2 file)
     deleted = db.Column(db.Boolean)
-    # scans = db.Column(db.Integer)
+    scans = db.Column(db.Integer)
 
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'))
     created_time = db.Column(db.DateTime)
@@ -121,6 +121,7 @@ class SQTFile(db.Model):
     file_path = db.Column(db.String(500)) # one dataset may have multiple rows in table (one per MS2 file)
     dbsearch_id = db.Column(db.Integer, db.ForeignKey('db_search.id'))
     created_time = db.Column(db.DateTime)
+    scans = db.Column(db.Integer)
     deleted = db.Column(db.Boolean)
 
     def __init__(self, file_path, dbsearch_id):
