@@ -93,6 +93,7 @@ class MS2File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     file_path = db.Column(db.String(500)) # one dataset may have multiple rows in table (one per MS2 file)
     deleted = db.Column(db.Boolean)
+    # scans = db.Column(db.Integer)
 
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'))
     created_time = db.Column(db.DateTime)

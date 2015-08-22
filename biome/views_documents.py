@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 from flask import ( Blueprint, 
-                    current_app, 
+                    current_app,
+                    flash,  
                     jsonify, 
                     redirect, 
                     render_template, 
@@ -244,9 +245,19 @@ def check_file_types(filename_list):
 
     return True
 
+def get_recent_records(model_obj, creation_time_field, limit=5):
+    ''' Returns the most recent [limit] records '''
+    return model_obj.query.order_by(creation_time_field.desc()).limit(limit).all()
+
 @data.route('/', methods=('GET', 'POST'))
 def document_index():
     upload_form = SubmitForm()
+
+    recent_five_datasets = get_recent_records(models.Dataset, models.Dataset.uploaded_time)
+    # dataset_pks = [dataset.id for dataset in recent_five_datasets]
+    # associated_ms2s = [models.MS2File.query.filter_by(dataset_id=dataset_id).all() for dataset_id in dataset_pks]
+    # associated_ms2s_scans = [ms2_files.scans]
+    # scans_for_ms2s = [sum(ms2_files)]
 
     if upload_form.validate_on_submit():
 
@@ -303,8 +314,8 @@ def document_index():
 
             try:
                 # save SQT and DTA records to database
-                sqt_data_ids = [save_new_sqt_record(dataset_id, sqt_file_path) for sqt_file_path in sqt_file_paths]
-                dta_data_ids = [save_new_dta_record(dataset_id, dta_file_path) for dta_file_path in dta_file_paths]
+                sqt_data_ids = [save_new_sqt_record(dbsearch_id, sqt_file_path) for sqt_file_path in sqt_file_paths]
+                dta_data_ids = [save_new_dta_record(dbsearch_id, dta_file_path) for dta_file_path in dta_file_paths]
             except:
                 app.logger.error('Error saving new SQT/DTA file info to database')
                 return 'Error saving new SQT/DTA file info to database'
@@ -318,7 +329,7 @@ def document_index():
 
         return redirect(url_for('data.upload_view'))
 
-    return render_template('data/document_index.html', upload_form=upload_form)
+    return render_template('data/document_index.html', upload_form=upload_form, recent_five_datasets=recent_five_datasets)
 
 
 @data.route('/uploadview')
