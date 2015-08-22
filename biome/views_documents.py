@@ -254,10 +254,6 @@ def document_index():
     upload_form = SubmitForm()
 
     recent_five_datasets = get_recent_records(models.Dataset, models.Dataset.uploaded_time)
-    # dataset_pks = [dataset.id for dataset in recent_five_datasets]
-    # associated_ms2s = [models.MS2File.query.filter_by(dataset_id=dataset_id).all() for dataset_id in dataset_pks]
-    # associated_ms2s_scans = [ms2_files.scans]
-    # scans_for_ms2s = [sum(ms2_files)]
 
     if upload_form.validate_on_submit():
 
@@ -349,4 +345,54 @@ def upload_view():
                                             session['sqt_data_ids'],
                                             session['dta_data_ids']
                                             )
+
+@data.route('/<dataset_pk>', methods=('GET', 'POST'))
+def dataset_info(dataset_pk):
+    ''' View function that displays information about a 
+        Dataset with id=dataset_pk
+
+        Looks up associated files via associated tables.
+
+        Allows editing/deleting of associated files (or entire dataset)
+    '''
+
+    dataset_object = models.Dataset.query.get(dataset_pk)
+    associated_tables = {   'ms1': dataset_object.ms1files.all(), 
+                            'ms2': dataset_object.ms2files.all(), 
+                            'dbsearch': dataset_object.dbsearches.all(), 
+                            'sqt': '', # need to get all associated SQTFiles/DTAFiles for all associated dbsearches
+                            'dta': ''
+                        }
+
+    # send this back as JSON for a "quick view" and have a separate view that allows full information and editing
+
+    print(associated_tables)
+
+
+    return dataset_object.name
+
+@data.route('/search/<dbsearch_pk>', methods=('GET', 'POST'))
+def dbsearch_info(dbsearch_pk):
+
+    return ''
+
+@data.route('/ms1/<ms1file_pk>', methods=('GET', 'POST'))
+def ms1file_info(ms1file_pk):
+
+    return ''
+
+@data.route('/ms2/<ms2file_pk>', methods=('GET', 'POST'))
+def ms2file_info(ms2file_pk):
+
+    return ''
+
+@data.route('/sqt/<sqtfile_pk>', methods=('GET', 'POST'))
+def sqtfile_info(sqtfile_pk):
+
+    return ''
+
+@data.route('/dta/<dtafile_pk>', methods=('GET', 'POST'))
+def dtafile_info(dtafile_pk):
+
+    return ''
 
