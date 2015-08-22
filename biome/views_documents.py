@@ -316,35 +316,15 @@ def document_index():
                 app.logger.error('Error saving new SQT/DTA file info to database')
                 return 'Error saving new SQT/DTA file info to database'
 
-        session['dataset_id'] = dataset_id
-        session['dbsearch_id'] = dbsearch_id
-        session['ms1_data_ids'] = ms1_data_ids
-        session['ms2_data_ids'] = ms2_data_ids
-        session['sqt_data_ids'] = sqt_data_ids
-        session['dta_data_ids'] = dta_data_ids
-
-        return redirect(url_for('data.upload_view'))
+        return jsonify({'dataset_id': dataset_id, 
+                        'dbsearch_id': dbsearch_id,
+                        'ms1_data_ids': ms1_data_ids,
+                        'ms2_data_ids': ms2_data_ids, 
+                        'sqt_data_ids': sqt_data_ids, 
+                        'dta_data_ids': dta_data_ids, 
+                        })
 
     return render_template('data/document_index.html', upload_form=upload_form, recent_five_datasets=recent_five_datasets)
-
-
-@data.route('/uploadview')
-def upload_view():
-    ## convert this to an ajax response
-
-    return '''Successfully uploaded files!
-            <br>dataset_id: {}
-            <br>dbsearch_id: {}
-            <br>ms1_data_ids: {}
-            <br>ms2_data_ids: {}
-            <br>sqt_data_ids: {}
-            <br>dta_data_ids: {}'''.format( session['dataset_id'], 
-                                            session['dbsearch_id'], 
-                                            session['ms1_data_ids'], 
-                                            session['ms2_data_ids'],
-                                            session['sqt_data_ids'],
-                                            session['dta_data_ids']
-                                            )
 
 @data.route('/<dataset_pk>', methods=('GET', 'POST'))
 def dataset_info(dataset_pk):
