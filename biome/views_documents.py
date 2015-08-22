@@ -246,8 +246,13 @@ def check_file_types(filename_list):
     return True
 
 def get_recent_records(model_obj, creation_time_field, limit=5):
-    ''' Returns the most recent [limit] records '''
-    return model_obj.query.order_by(creation_time_field.desc()).limit(limit).all()
+
+    ''' Returns the most recent [limit] records (default of 5) from
+        database table specified by model_obj (e.g., models.Dataset)
+        and ordered by (descending) creation_time_field (e.g., models.Dataset.uploaded_time)
+    '''
+
+    return model_obj.query.filter_by(deleted=False).order_by(creation_time_field.desc()).limit(limit).all()
 
 @data.route('/', methods=('GET', 'POST'))
 def document_index():
