@@ -256,6 +256,10 @@ def get_recent_records(model_obj, creation_time_field, limit=5):
 
 @data.route('/', methods=('GET', 'POST'))
 def document_index():
+
+    ''' View function for "index" page for all document types (including file uploader interface)
+    '''
+
     upload_form = SubmitForm()
 
     recent_five_datasets = get_recent_records(models.Dataset, models.Dataset.uploaded_time)
@@ -281,10 +285,10 @@ def document_index():
 
         dataset_id = None
         dbsearch_id = None
-        ms1_data_ids = []
-        ms2_data_ids = []
-        sqt_data_ids = []
-        dta_data_ids = []
+        ms1_data_ids = None
+        ms2_data_ids = None
+        sqt_data_ids = None
+        dta_data_ids = None
 
         # save new dataset in database
         dataset_name = upload_form.dataset_name.data
@@ -331,8 +335,29 @@ def document_index():
 
     return render_template('data/document_index.html', upload_form=upload_form, recent_five_datasets=recent_five_datasets)
 
+@data.route('/<dataset_pk>/quickview')
+def dataset_quickinfo(dataset_pk):
+
+    ''' Returns JSON object with some basic information about
+        a dataset object with id=dataset_pk (used for "Quick View" link)
+    '''
+
+    dataset_object = models.Dataset.query.get(dataset_pk)
+    dbsearch_ids = [dbsearch.id for dbsearch in dataset_object.dbsearches.all()]
+
+    info_dict = { 'name': dataset_object.name, 
+                    'id': dataset_object.id, 
+                    'description': dataset_object.description, 
+                    'ms1_files': [ms1file.id for ms1file in dataset_object.ms1files.all()], 
+                    'ms2_files': [ms2file.id for ms2file in dataset_object.ms2files.all()], 
+                    'dbsearches': dbsearch_ids,
+                    }
+
+    return jsonify(info_dict)
+
 @data.route('/<dataset_pk>', methods=('GET', 'POST'))
 def dataset_info(dataset_pk):
+
     ''' View function that displays information about a 
         Dataset with id=dataset_pk
 
@@ -349,7 +374,8 @@ def dataset_info(dataset_pk):
                             'dta': ''
                         }
 
-    # send this back as JSON for a "quick view" and have a separate view that allows full information and editing
+    # dbsearches = [models.DBSearch.query.get(dbsearch_id) for dbsearch_id in dbsearch_ids]
+    # dta_files = [dbsearch.dtafiles.all() for dbsearch in dbsearches]
 
     print(associated_tables)
 

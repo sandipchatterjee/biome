@@ -19,9 +19,9 @@
             <th class="text-center">MS2 files</th>
             <th class="text-center">Description</th>
             <th class="text-center">Date created</th>
-            <th class="text-center"></th> <!-- view button -->
-            <th class="text-center"></th> <!-- edit button -->
-            <th class="text-center"></th> <!-- delete button -->
+            <th class="text-center"></th> <!-- quickview button -->
+            <th class="text-center"></th> <!-- view/edit button -->
+
         </tr>
     </thead>
     {% for dataset_obj in recent_five_datasets %}
@@ -31,13 +31,10 @@
         <td class="text-center">{{ dataset_obj.description }}</td>
         <td class="text-center">{{ dataset_obj.uploaded_time.strftime('%m/%d/%Y, %I:%M %p') }}</td>
         <td class="text-center">
-            <a href="#"><button type="button" class="btn btn-success btn-sm">View</button></a>
+            <a href="" class="quickview" data-id="{{ dataset_obj.id }}" data-href="{{ url_for('data.dataset_quickinfo', dataset_pk=dataset_obj.id) }}"><button type="button" class="btn btn-success btn-sm">Quick View</button></a>
         </td>
         <td class="text-center">
-            <a href=""><button type="button" class="btn btn-primary btn-sm">Edit</button></a>
-        </td>
-        <td class="text-center">
-            <a href="#"><button type="button" class="btn btn-danger btn-sm">Delete</button></a>
+            <a href="{{ url_for('data.dataset_info', dataset_pk=dataset_obj.id) }}"><button type="button" class="btn btn-primary btn-sm">View/Edit</button></a>
         </td>
     {% endfor %}
     </tr>
@@ -51,11 +48,12 @@
 
     <div class="col-md-6">
     <!-- space to put upload message -->
-        <h3 id="statusHeader">
-            <small></small>
-        </h3>
+        <h3 id="statusHeader"></h3>
+        <h3><small id="statusSubheader"></small></h3>
         <div id="progressBar"></div>
         <div id="statusSection">
+            <small id="smallStatusText"></small>
+            <p></p>
             <p id="statusLine1"></p>
             <p id="statusLine2"></p>
             <p id="statusLine3"></p>
@@ -118,6 +116,16 @@
 </div>
 
 <script>
+// String formatting -- from http://stackoverflow.com/a/3492815
+String.prototype.format = function() {
+    var formatted = this;
+    for( var arg in arguments ) {
+        formatted = formatted.replace("{" + arg + "}", arguments[arg]);
+    }
+    return formatted;
+};
+
+// File selection box
 $(document).on('change', '.btn-file :file', function () {
     var input = $(this), numFiles = input.get(0).files ? input.get(0).files.length : 1, label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
     input.trigger('fileselect', [
@@ -137,6 +145,7 @@ $(document).ready(function () {
     });
 });
 
+// Upload status
 $(function() {
     $('#upload_button').click(function(event) {
         event.preventDefault();
@@ -181,6 +190,22 @@ $(function() {
         });
     });
 }); 
+
+// Quickview
+$('.quickview').click(function(event) {
+    event.preventDefault();
+    var dataset_id = $(this).attr("data-id");
+    var url_for_quickview = $(this).attr("data-href");
+    $.get(url_for_quickview, function(data) {
+        $('#statusHeader').text('Dataset Information');
+        $('#statusSubheader').text(data['name']+" (dataset ID: {0})".format(data['id']));
+        $('#smallStatusText').text(data['description']);
+        $('#statusLine1').html('<strong>MS1 files</strong>: '+data['ms1_files'].length);
+        $('#statusLine2').html('<strong>MS2 files</strong>: '+data['ms2_files'].length);
+        $('#statusLine3').html('<strong>Searches</strong>: '+data['dbsearches'].length);
+
+    });
+});
 
 </script>
 {% endblock %}
