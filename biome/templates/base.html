@@ -23,6 +23,16 @@
     <body>
         {% block navbar %}
 
+        {% set navigation_bar = [
+            (url_for('index'), 'index', 'Home'),
+            ('/search/', 'search', 'Search ComPIL'),
+            ('/build/', 'build', 'Build ComPIL'), 
+            (url_for('data.document_index'), 'view', 'View Data'), 
+            ('/analyze/', 'analyze', 'Analyze Data'), 
+        ] -%}
+
+        {% set active_page = active_page|default('index') -%}
+
         <nav class="navbar navbar-default">
           <div class="container-fluid">
             <!-- Brand and toggle get grouped for better mobile display -->
@@ -33,17 +43,22 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="#">Biome</a>
+              <a class="navbar-brand" href="{{ url_for('index') }}">Biome</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
               <ul class="nav navbar-nav">
-                <li class="active"><a href="{{ url_for('index') }}">Home <span class="sr-only">(current)</span></a></li>
+<!--                 <li class="active"><a href="{{ url_for('index') }}">Home <span class="sr-only">(current)</span></a></li>
                 <li><a href="#">Search ComPIL</a></li>
                 <li><a href="#">Build ComPIL</a></li>
                 <li><a href="{{ url_for('data.document_index') }}">View Data</a></li>
-                <li><a href="#">Analyze Data</a></li>
+                <li><a href="#">Analyze Data</a></li> -->
+                {% for href, id, caption in navigation_bar %}
+                <li{% if id == active_page %} class="active"{% endif%}>
+                  <a href="{{ href|e }}">{{ caption|e }}</a>
+                </li>
+                {% endfor %}
                 <li class="dropdown">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Tools <span class="caret"></span></a>
                   <ul class="dropdown-menu" role="menu">
