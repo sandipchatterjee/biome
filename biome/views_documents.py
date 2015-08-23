@@ -27,9 +27,9 @@ from biome import ( api,
                     data, 
                     db, 
                     models, 
+                    views_helpers, 
                     )
 from tempfile import mkstemp
-from hashlib import sha224
 import re
 import shutil
 
@@ -50,21 +50,6 @@ class SubmitForm(Form):
     dataset_desc = TextAreaField('Description:', [validators.optional(), validators.length(max=500)])
     submit = SubmitField('Upload Data')
 
-def get_hash(filepath):
-
-    ''' read filepath and return calculated SHA224 hex digest
-    '''
-
-    hasher = sha224()
-    with open(filepath, 'rb') as f:
-        while True:
-            byte = f.read(1)
-            if not byte:
-                break
-            hasher.update(byte)
-
-    return hasher.hexdigest()
-
 def save_new_file(file_obj):
 
     ''' Saves a new file (specified by file_obj) to new_file_path by calculating
@@ -76,7 +61,7 @@ def save_new_file(file_obj):
     uploads_dir = app.config['UPLOAD_FOLDER']+'/'
     tmp_file_path = mkstemp()[1]
     file_obj.save(tmp_file_path)
-    hash_val = get_hash(tmp_file_path)
+    hash_val = views_helpers.get_hash(tmp_file_path)
 
     new_file_path = uploads_dir+hash_val+secure_filename(file_obj.filename)[-4:]
     shutil.move(tmp_file_path, new_file_path)
@@ -84,63 +69,6 @@ def save_new_file(file_obj):
     app.logger.info('Saved uploaded file {} to {}'.format(file_obj.filename, new_file_path))
 
     return new_file_path
-
-def validate_and_save(files, upload_form):
-
-    ''' checks to make sure each filename in "files" ends with "filetype";
-        Saves files to UPLOAD_FOLDER if all are same type. 
-        Returns file_ids (with new file IDs from database) if successful.
-        Returns False or file_ids=[] if unsuccessful.
-    '''
-
-    dataset_name = upload_form.dataset_name.data
-    filetype = upload_form.file_type.data.lower()
-    if filetype == 'dta':
-        file_extension = 'txt'
-    else:
-        file_extension = filetype
-    description = upload_form.file_desc.data
-    uploads_dir = app.config['UPLOAD_FOLDER']+'/'
-
-    # check to make sure all files are of same type
-    if not all([file_obj.filename.lower().endswith(file_extension) for file_obj in files]):
-        return False
-
-    try:
-        dataset_id = save_new_dataset(dataset_name, description)
-    except: # look up database-specific exceptions for here
-        return False
-
-    if filetype == 'ms2':
-        save_new_file_to_db = save_new_ms2_file
-    elif filetype == 'dta':
-        save_new_file_to_db = save_new_dta_file
-    elif filetype == 'sqt':
-        save_new_file_to_db = save_new_sqt_file
-    elif filetype == 'ms1':
-        save_new_file_to_db = save_new_ms1_file
-    else: # unsupported filetype
-        return False
-
-    file_ids = []
-    
-    for file_obj in files:
-        try:
-            tmp_file_path = mkstemp()[1]
-            file_obj.save(tmp_file_path)
-            hash_val = get_hash(tmp_file_path)
-
-            new_file_path = uploads_dir+hash_val+secure_filename(file_obj.filename)[-4:]
-            shutil.move(tmp_file_path, new_file_path)
-
-            app.logger.info('Saved uploaded file {} to {}'.format(file_obj.filename, new_file_path))
-
-            file_ids.append(save_new_file_to_db(dataset_id, new_file_path))
-
-        except:
-            return False
-    else: # for loop completed successfully
-        return file_ids
 
 def save_new_dataset(dataset_name, description):
 
@@ -245,15 +173,6 @@ def check_file_types(filename_list):
 
     return True
 
-def get_recent_records(model_obj, creation_time_field, limit=5):
-
-    ''' Returns the most recent [limit] records (default of 5) from
-        database table specified by model_obj (e.g., models.Dataset)
-        and ordered by (descending) creation_time_field (e.g., models.Dataset.uploaded_time)
-    '''
-
-    return model_obj.query.filter_by(deleted=False).order_by(creation_time_field.desc()).limit(limit).all()
-
 @data.route('/', methods=('GET', 'POST'))
 def document_index():
 
@@ -262,7 +181,7 @@ def document_index():
 
     upload_form = SubmitForm()
 
-    recent_five_datasets = get_recent_records(models.Dataset, models.Dataset.uploaded_time)
+    recent_five_datasets = views_helpers.get_recent_records(models.Dataset, models.Dataset.uploaded_time)
 
     if upload_form.validate_on_submit():
 

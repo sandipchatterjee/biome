@@ -12,8 +12,9 @@ from biome import ( app,
                     data, 
                     db, 
                     models, 
+                    views_documents, 
+                    views_helpers, 
                     views_plots, 
-                    views_documents,
                     )
 
 ## API/Blueprint:
@@ -31,22 +32,9 @@ def json_api():
 def index():
     return render_template('index.html')
 
-def get_json_response(view_name, *args, **kwargs):
-
-    """ Get JSON response from view and return decoded JSON string.
-        Can be parsed by calling function using JSON.loads(json_obj)
-    """
-
-    view = current_app.view_functions[view_name]
-    resp = view(*args, **kwargs)
-
-    json_obj = resp.get_data().decode('utf-8')
-    
-    return json_obj
-
 @app.route('/API_test')
 def test_API():
-    json_obj = get_json_response('api.json_api')
+    json_obj = views_helpers.get_json_response('api.json_api')
     json_obj = json.loads(json_obj)
     
     # example modifying new dict
