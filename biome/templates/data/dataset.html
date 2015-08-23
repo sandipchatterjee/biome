@@ -4,25 +4,77 @@
 {% block title %} - Data{% endblock %}
 
 {% block content %}
-<h1>{{ current_dataset.name }}</h1>
-<p class="lead">Dataset ID {{ current_dataset.id }} {% block subtitle_additions %}{% endblock %}</p>
+<h1>Dataset Information</h1>
 
-<div class="row display-table">
-    <div class="col-md-7 display-cell">
-        <h3>Recent Datasets</h3>
+<p class="lead"> {% block subtitle_additions %}{% endblock %}</p>
+
+<div class="panel panel-default">
+    <div class="panel-heading"><h4>{{ current_dataset.name }}</h4></div>
+    <div class="panel-body">
+        <p><em>{{ current_dataset.description }}</em></p>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item"><h3><small>MS1 files</small></h3>
+            <ul class="list-group">
+                {% for file_object in current_dataset.ms1files.all() %}
+                <li class="list-group-item">{{ file_object.original_filename }}</li>
+                {% endfor %}
+            </ul>
+        </li>
+        <li class="list-group-item"><h3><small>MS2 files</small></h3>
+            <ul class="list-group">
+                {% for file_object in current_dataset.ms2files.all() %}
+                <li class="list-group-item">{{ file_object.original_filename }}</li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% if dataset_quickinfo_dict.dbsearches %}
+        <li class="list-group-item"><h3><small>Database searches</small></h3>
+            {% for dbsearch in current_dataset.dbsearches.all() %}
+            <ul class="list-group"><strong>{{ dbsearch.start_time.strftime('%m/%d/%Y, %I:%M %p') }}</strong>
+                <li class="list-group-item">
+                    <ul class="list-group"><h5>SQT files</h5>
+                        {% for sqtfile in dbsearch.sqtfiles.all() %}
+                        <li class="list-group-item">{{ sqtfile.original_filename }}</li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <ul class="list-group"><h5>DTASelect-filter files</h5>
+                        {% for dtafile in dbsearch.dtafiles.all() %}
+                        <li class="list-group-item">{{ dtafile.original_filename }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            </ul>
+            {% endfor %}
+        </li>
+        {% else %}
+        <li class="list-group-item"><h3><small><em>No existing database searches</em></small></h3></li>
+        {% endif %}
+    </ul>
+    <div class="panel-footer">
+        <div class="row">
+            <div class="col-md-6 deleteDatasetButton"> 
+                {% if current_dataset.deleted %}
+                <a href="{{ url_for('data.delete_dataset', dataset_pk=dataset_id, recover=True) }}">
+                    <button type="button" class="btn btn-primary btn-lg btn-block">Recover Dataset</button>
+                </a>
+                {% else %}
+                <a href="{{ url_for('data.delete_dataset', dataset_pk=dataset_id) }}">
+                    <button type="button" class="btn btn-danger btn-lg btn-block">Delete Dataset</button>
+                </a>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 
-<br>
-
-{% if current_dataset.deleted %}
-<a href="{{ url_for('data.delete_dataset', dataset_pk=dataset_id, recover=True) }}">
-    <button type="button" class="btn btn-primary btn-lg">Recover Dataset</button>
-</a>
-{% else %}
-<a href="{{ url_for('data.delete_dataset', dataset_pk=dataset_id) }}">
-    <button type="button" class="btn btn-danger btn-lg">Delete Dataset</button>
-</a>
-{% endif %}
+<div id="bottomBreadcrumb">
+    <ol class="breadcrumb">
+      <li><a href="{{ url_for('index') }}">Home</a></li>
+      <li><a href="{{ url_for('data.document_index') }}">View Data</a></li>
+      <li class="active">{{ current_dataset.name }}</li>
+    </ol>
+</div>
 
 {% endblock %}

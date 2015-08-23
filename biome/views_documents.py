@@ -316,7 +316,7 @@ def dataset_info(dataset_pk):
     dataset_quickinfo_dict = views_helpers.get_json_response('data.dataset_quickinfo', dataset_pk)
     dataset_quickinfo_dict = json.loads(dataset_quickinfo_dict)
 
-    return render_template('data/dataset.html', dataset_id=dataset_pk, current_dataset=current_dataset)
+    return render_template('data/dataset.html', dataset_id=dataset_pk, current_dataset=current_dataset, dataset_quickinfo_dict=dataset_quickinfo_dict)
 
 @data.route('/<dataset_pk>/delete')
 def delete_dataset(dataset_pk):

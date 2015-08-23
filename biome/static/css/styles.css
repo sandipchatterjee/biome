@@ -23,12 +23,20 @@ input[readonly] {
 }
 
 .form-label {
-    font-size: 1.5em;
-    font-weight: normal;
-    color: #7A7A7A;
+  font-size: 1.5em;
+  font-weight: normal;
+  color: #7A7A7A;
 }
 
 form .row {
-    margin-bottom: 1em;
+  margin-bottom: 1em;
 }
 
+#bottomBreadcrumb {
+  margin-top: 2em;
+}
+
+div .deleteDatasetButton {
+  float: none;
+  margin: 0 auto;
+}
