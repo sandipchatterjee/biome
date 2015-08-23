@@ -216,7 +216,7 @@ def document_index():
             dataset_id = save_new_dataset(dataset_name, dataset_description)
         except:
             app.logger.error('Error creating new dataset {}'.format(dataset_name))
-            return 'Error creating new dataset {}'.format(dataset_name) # should return a redirect/view
+            return None
 
         if ms1_file_paths:
             try:
