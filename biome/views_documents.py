@@ -268,6 +268,8 @@ def document_index():
                     return None
 
         return jsonify({'dataset_id': dataset_id, 
+                        'dataset_name': dataset_name, 
+                        'dataset_description': dataset_description, 
                         'dbsearch_id': dbsearch_id,
                         'ms1_data_ids': ms1_data_ids,
                         'ms2_data_ids': ms2_data_ids, 

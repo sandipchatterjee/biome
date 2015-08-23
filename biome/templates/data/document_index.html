@@ -25,6 +25,8 @@
 
         </tr>
     </thead>
+    <tr id="newDataset">
+    </tr>
     {% for dataset_obj in recent_five_datasets %}
     <tr>
         <td class="text-center">{{ dataset_obj.name }}</td>
@@ -177,6 +179,32 @@ $(function() {
                     $("#statusLine6").text('Uploaded new DTASelect-filter files (ID: '+data['dta_data_ids']+')');
                 }
             }
+
+            if (data['ms2_data_ids']) {
+                var newDatasetMS2s = data['ms2_data_ids'].length;
+            }
+            else {
+                var newDatasetMS2s = 0;
+            }
+
+            var baseColumnMarkup = '<td class="text-center">{0}</td>';
+
+            var quickInfoURL = "{{ url_for('data.dataset_quickinfo', dataset_pk=-1) }}".replace('-1', data['dataset_id']);
+            // leaving as "display: none" for now, button doesn't work properly because it is created after the quickview.click event
+            var quickViewButton = '<a href="" class="quickview" data-id="{0}" data-href="{1}"><button style="display:none;" type="button" class="btn btn-success btn-sm">Quick View</button></a>'.format(data['dataset_id'], quickInfoURL);
+
+            var dataInfoURL = "{{ url_for('data.dataset_info', dataset_pk=-1) }}".replace('-1', data['dataset_id']);
+            var viewEditButton = '<a href="{0}"><button type="button" class="btn btn-primary btn-sm">View/Edit</button></a>'.format(dataInfoURL);
+
+            var columnMarkupArray = [   baseColumnMarkup.format(data['dataset_name']),
+                                        baseColumnMarkup.format(newDatasetMS2s),
+                                        baseColumnMarkup.format(data['dataset_description']),
+                                        baseColumnMarkup.format('just now'),
+                                        baseColumnMarkup.format(quickViewButton),
+                                        baseColumnMarkup.format(viewEditButton)
+                                    ];
+
+            $("#newDataset").html(columnMarkupArray.join('\n'));
 
         }).fail(function(data){
             $("#progressBar").html('');
