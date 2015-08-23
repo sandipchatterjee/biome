@@ -299,31 +299,45 @@ def document_index():
             app.logger.error('Error creating new dataset {}'.format(dataset_name))
             return 'Error creating new dataset {}'.format(dataset_name) # should return a redirect/view
 
-        if ms1_file_paths or ms2_file_paths:
+        if ms1_file_paths:
             try:
-                # save MS1 and MS2 records to database
+                # save MS1 records to database
                 ms1_data_ids = [save_new_ms1_record(dataset_id, ms1_file_path) for ms1_file_path in ms1_file_paths]
+            except:
+                # log database error and return
+                app.logger.error('Error saving new MS1 file info to database')
+                return None
+
+        if ms2_file_paths:
+            try:
+                # save MS2 records to database
                 ms2_data_ids = [save_new_ms2_record(dataset_id, ms2_file_path) for ms2_file_path in ms2_file_paths]
             except:
                 # log database error and return
-                app.logger.error('Error saving new MS1/MS2 file info to database')
-                return 'Error saving new MS1/MS2 file info to database'
+                app.logger.error('Error saving new MS2 file info to database')
+                return None
 
         if sqt_file_paths or dta_file_paths:
             try:
                 dbsearch_id = save_new_dbsearch(dataset_id) # create DBSearch
             except:
                 # log DB error and return
-                app.logger.error('Error saving new MS1/MS2 file info to database')
-                return 'Error saving new MS1/MS2 file info to database'
-
-            try:
-                # save SQT and DTA records to database
-                sqt_data_ids = [save_new_sqt_record(dbsearch_id, sqt_file_path) for sqt_file_path in sqt_file_paths]
-                dta_data_ids = [save_new_dta_record(dbsearch_id, dta_file_path) for dta_file_path in dta_file_paths]
-            except:
-                app.logger.error('Error saving new SQT/DTA file info to database')
-                return 'Error saving new SQT/DTA file info to database'
+                app.logger.error('Error saving new Database Search to database')
+                return None
+            if sqt_file_paths:                
+                try:
+                    # save SQT records to database
+                    sqt_data_ids = [save_new_sqt_record(dbsearch_id, sqt_file_path) for sqt_file_path in sqt_file_paths]
+                except:
+                    app.logger.error('Error saving new SQT file info to database')
+                    return None
+            if dta_file_paths:
+                try:
+                    # save DTA records to database
+                    dta_data_ids = [save_new_dta_record(dbsearch_id, dta_file_path) for dta_file_path in dta_file_paths]
+                except:
+                    app.logger.error('Error saving new DTA file info to database')
+                    return None
 
         return jsonify({'dataset_id': dataset_id, 
                         'dbsearch_id': dbsearch_id,
