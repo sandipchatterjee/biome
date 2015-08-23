@@ -308,42 +308,42 @@ def dataset_info(dataset_pk):
         Allows editing/deleting of associated files (or entire dataset)
     '''
 
-    dataset_object = models.Dataset.query.get(dataset_pk)
-    associated_tables = {   'ms1': dataset_object.ms1files.all(), 
-                            'ms2': dataset_object.ms2files.all(), 
-                            'dbsearch': dataset_object.dbsearches.all(), 
-                            'sqt': '', # need to get all associated SQTFiles/DTAFiles for all associated dbsearches
-                            'dta': ''
-                        }
+    current_dataset = models.Dataset.query.get(dataset_pk)
 
-    # dbsearches = [models.DBSearch.query.get(dbsearch_id) for dbsearch_id in dbsearch_ids]
-    # dta_files = [dbsearch.dtafiles.all() for dbsearch in dbsearches]
+    # this is performing a second identical DB query... not ideal:
+    dataset_quickinfo_dict = views_helpers.get_json_response('data.dataset_quickinfo', dataset_pk)
+    dataset_quickinfo_dict = json.loads(dataset_quickinfo_dict)
 
-    print(associated_tables)
-
-    return render_template('data/dataset.html', pk=dataset_pk)
+    return render_template('data/dataset.html', dataset_id=dataset_pk, current_dataset=current_dataset)
 
 @data.route('/<dataset_pk>/delete')
 def delete_dataset(dataset_pk):
 
     ''' "Deletes" dataset (id=dataset_pk) by setting Dataset.deleted=True
+
+        "Recovers" dataset if url is accessed with argument recover=True like this:
+        /<dataset_pk>/delete?recover=True
     '''
+
+    # new_status flag sets [model_instance].deleted to True or False
+    # depending on whether it should be "deleted" or "recovered"
+    new_status = not request.args.get('recover', None)
 
     dataset_quickinfo_dict = views_helpers.get_json_response('data.dataset_quickinfo', dataset_pk)
     dataset_quickinfo_dict = json.loads(dataset_quickinfo_dict)
 
     # "delete" dataset
     current_dataset = models.Dataset.query.get(dataset_pk)
-    current_dataset.deleted = True
+    current_dataset.deleted = new_status
 
     # "delete" associated MS1 and MS2 files
     for ms1_file_id in dataset_quickinfo_dict['ms1_files']:
         ms1_file = models.MS1File.query.get(ms1_file_id)
-        ms1_file.deleted = True
+        ms1_file.deleted = new_status
 
     for ms2_file_id in dataset_quickinfo_dict['ms2_files']:
         ms2_file = models.MS2File.query.get(ms2_file_id)
-        ms2_file.deleted = True
+        ms2_file.deleted = new_status
 
     # "delete" associated dbsearches
     if dataset_quickinfo_dict['dbsearches']:
@@ -352,7 +352,7 @@ def delete_dataset(dataset_pk):
 
         for dbsearch_pk in dataset_quickinfo_dict['dbsearches']:
             current_dbsearch = models.DBSearch.query.get(dbsearch_pk)
-            current_dbsearch.deleted = True
+            current_dbsearch.deleted = new_status
 
             for sqt_file in current_dbsearch.sqtfiles.all():
                 all_sqt_files.append(sqt_file)
@@ -362,11 +362,10 @@ def delete_dataset(dataset_pk):
 
         # "delete" associated SQT and DTA files
         for sqt_file in all_sqt_files:
-            sqt_file.deleted = True
+            sqt_file.deleted = new_status
 
         for dta_file in all_dta_files:
-            dta_file.deleted = True
-
+            dta_file.deleted = new_status
 
     db.session.commit()
 

@@ -4,8 +4,8 @@
 {% block title %} - Data{% endblock %}
 
 {% block content %}
-<h1>Dataset Name</h1>
-<p class="lead">Choose from recent datasets {% block subtitle_additions %}{% endblock %}</p>
+<h1>{{ current_dataset.name }}</h1>
+<p class="lead">Dataset ID {{ current_dataset.id }} {% block subtitle_additions %}{% endblock %}</p>
 
 <div class="row display-table">
     <div class="col-md-7 display-cell">
@@ -15,8 +15,14 @@
 
 <br>
 
-<a href="{{ url_for('data.delete_dataset', dataset_pk=pk) }}">
+{% if current_dataset.deleted %}
+<a href="{{ url_for('data.delete_dataset', dataset_pk=dataset_id, recover=True) }}">
+    <button type="button" class="btn btn-primary btn-lg">Recover Dataset</button>
+</a>
+{% else %}
+<a href="{{ url_for('data.delete_dataset', dataset_pk=dataset_id) }}">
     <button type="button" class="btn btn-danger btn-lg">Delete Dataset</button>
 </a>
+{% endif %}
 
 {% endblock %}
