@@ -115,15 +115,8 @@
 
 </div>
 
+<script src="{{ url_for('static', filename='js/biome.js') }}"></script>
 <script>
-// String formatting -- from http://stackoverflow.com/a/3492815
-String.prototype.format = function() {
-    var formatted = this;
-    for( var arg in arguments ) {
-        formatted = formatted.replace("{" + arg + "}", arguments[arg]);
-    }
-    return formatted;
-};
 
 // File selection box
 $(document).on('change', '.btn-file :file', function () {
