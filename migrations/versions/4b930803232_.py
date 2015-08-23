@@ -1,13 +1,13 @@
 """empty message
 
-Revision ID: 58a501c4d67
+Revision ID: 4b930803232
 Revises: None
-Create Date: 2015-08-21 17:17:19.123579
+Create Date: 2015-08-22 17:40:34.594581
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '58a501c4d67'
+revision = '4b930803232'
 down_revision = None
 
 from alembic import op
@@ -37,6 +37,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('file_path', sa.String(length=500), nullable=True),
     sa.Column('deleted', sa.Boolean(), nullable=True),
+    sa.Column('original_filename', sa.String(length=150), nullable=True),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('created_time', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
@@ -47,6 +48,7 @@ def upgrade():
     sa.Column('file_path', sa.String(length=500), nullable=True),
     sa.Column('deleted', sa.Boolean(), nullable=True),
     sa.Column('scans', sa.Integer(), nullable=True),
+    sa.Column('original_filename', sa.String(length=150), nullable=True),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('created_time', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
@@ -55,6 +57,7 @@ def upgrade():
     op.create_table('dta_file',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('file_path', sa.String(length=500), nullable=True),
+    sa.Column('original_filename', sa.String(length=150), nullable=True),
     sa.Column('dbsearch_id', sa.Integer(), nullable=True),
     sa.Column('created_time', sa.DateTime(), nullable=True),
     sa.Column('deleted', sa.Boolean(), nullable=True),
@@ -65,6 +68,7 @@ def upgrade():
     op.create_table('sqt_file',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('file_path', sa.String(length=500), nullable=True),
+    sa.Column('original_filename', sa.String(length=150), nullable=True),
     sa.Column('dbsearch_id', sa.Integer(), nullable=True),
     sa.Column('created_time', sa.DateTime(), nullable=True),
     sa.Column('scans', sa.Integer(), nullable=True),
