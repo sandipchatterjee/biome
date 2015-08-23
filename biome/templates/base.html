@@ -49,11 +49,6 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
               <ul class="nav navbar-nav">
-<!--                 <li class="active"><a href="{{ url_for('index') }}">Home <span class="sr-only">(current)</span></a></li>
-                <li><a href="#">Search ComPIL</a></li>
-                <li><a href="#">Build ComPIL</a></li>
-                <li><a href="{{ url_for('data.document_index') }}">View Data</a></li>
-                <li><a href="#">Analyze Data</a></li> -->
                 {% for href, id, caption in navigation_bar %}
                 <li{% if id == active_page %} class="active"{% endif%}>
                   <a href="{{ href|e }}">{{ caption|e }}</a>
