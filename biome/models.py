@@ -73,10 +73,11 @@ class MS1File(db.Model):
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'))
     created_time = db.Column(db.DateTime)
 
-    def __init__(self, file_path, dataset_id):
+    def __init__(self, file_path, dataset_id, original_filename=None):
         self.file_path = file_path
         self.dataset_id = dataset_id
         self.created_time = datetime.now()
+        self.original_filename = original_filename
         self.deleted = False # never actually delete information... just set flag to True
 
     def __repr__(self):
@@ -98,10 +99,11 @@ class MS2File(db.Model):
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'))
     created_time = db.Column(db.DateTime)
 
-    def __init__(self, file_path, dataset_id):
+    def __init__(self, file_path, dataset_id, original_filename=None):
         self.file_path = file_path
         self.dataset_id = dataset_id
         self.created_time = datetime.now()
+        self.original_filename = original_filename
         self.deleted = False # never actually delete information... just set flag to True
 
     def __repr__(self):
@@ -125,10 +127,11 @@ class SQTFile(db.Model):
     scans = db.Column(db.Integer)
     deleted = db.Column(db.Boolean)
 
-    def __init__(self, file_path, dbsearch_id):
+    def __init__(self, file_path, dbsearch_id, original_filename=None):
         self.file_path = file_path
         self.dbsearch_id = dbsearch_id
         self.created_time = datetime.now()
+        self.original_filename = original_filename
         self.deleted = False # never actually delete information... just set flag to True
 
     def __repr__(self):
@@ -152,10 +155,11 @@ class DTAFile(db.Model):
     # DTASelect flags used for filtering, e.g. '-p 2 -m 0 --trypstat'
     flags = db.Column(db.String(100))
 
-    def __init__(self, file_path, dbsearch_id):
+    def __init__(self, file_path, dbsearch_id, original_filename=None):
         self.file_path = file_path
         self.dbsearch_id = dbsearch_id
         self.created_time = datetime.now()
+        self.original_filename = original_filename
         self.deleted = False # never actually delete information... just set flag to True
 
     def __repr__(self):

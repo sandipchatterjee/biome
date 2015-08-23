@@ -63,12 +63,14 @@ def save_new_file(file_obj):
     file_obj.save(tmp_file_path)
     hash_val = views_helpers.get_hash(tmp_file_path)
 
-    new_file_path = uploads_dir+hash_val+secure_filename(file_obj.filename)[-4:]
+    original_filename = secure_filename(file_obj.filename)
+
+    new_file_path = uploads_dir+hash_val+original_filename[-4:]
     shutil.move(tmp_file_path, new_file_path)
 
     app.logger.info('Saved uploaded file {} to {}'.format(file_obj.filename, new_file_path))
 
-    return new_file_path
+    return new_file_path, original_filename
 
 def save_new_dataset(dataset_name, description):
 
@@ -96,12 +98,12 @@ def save_new_dbsearch(dataset_id, params=None):
 
     return new_dbsearch.id
 
-def save_new_ms1_record(dataset_id, file_path):
+def save_new_ms1_record(dataset_id, file_path, original_filename=None):
 
     ''' Creates a new row in the ms1_file db table
     '''
 
-    new_ms1_file = models.MS1File(file_path, dataset_id)
+    new_ms1_file = models.MS1File(file_path, dataset_id, original_filename=original_filename)
     db.session.add(new_ms1_file)
     db.session.commit()
 
@@ -109,12 +111,12 @@ def save_new_ms1_record(dataset_id, file_path):
 
     return new_ms1_file.id
 
-def save_new_ms2_record(dataset_id, file_path):
+def save_new_ms2_record(dataset_id, file_path, original_filename=None):
 
     ''' Creates a new row in the ms2_file db table
     '''
 
-    new_ms2_file = models.MS2File(file_path, dataset_id)
+    new_ms2_file = models.MS2File(file_path, dataset_id, original_filename=original_filename)
     db.session.add(new_ms2_file)
     db.session.commit()
 
@@ -122,31 +124,31 @@ def save_new_ms2_record(dataset_id, file_path):
 
     return new_ms2_file.id
 
-def save_new_dta_record(dataset_id, file_path):
+def save_new_dta_record(dbsearch_id, file_path, original_filename=None):
 
     ''' Creates a new row in the dta_file db table
     '''
 
     # parse DTA file for 'flags' field... (something like '-p 2 -m 0 --trypstat')
 
-    new_dta_file = models.DTAFile(file_path, dataset_id)
+    new_dta_file = models.DTAFile(file_path, dbsearch_id, original_filename=original_filename)
     db.session.add(new_dta_file)
     db.session.commit()
 
-    app.logger.info('Saved new DTA file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
+    app.logger.info('Saved new DTA file {} (Dataset ID {}) to database'.format(file_path, dbsearch_id))
 
     return new_dta_file.id
 
-def save_new_sqt_record(dataset_id, file_path):
+def save_new_sqt_record(dbsearch_id, file_path, original_filename=None):
 
     ''' Creates a new row in the sqt_file db table
     '''
 
-    new_sqt_file = models.SQTFile(file_path, dataset_id)
+    new_sqt_file = models.SQTFile(file_path, dbsearch_id, original_filename=original_filename)
     db.session.add(new_sqt_file)
     db.session.commit()
 
-    app.logger.info('Saved new SQT file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
+    app.logger.info('Saved new SQT file {} (Dataset ID {}) to database'.format(file_path, dbsearch_id))
 
     return new_sqt_file.id
 
@@ -216,24 +218,27 @@ def document_index():
             dataset_id = save_new_dataset(dataset_name, dataset_description)
         except:
             app.logger.error('Error creating new dataset {}'.format(dataset_name))
+            raise
             return None
 
         if ms1_file_paths:
             try:
                 # save MS1 records to database
-                ms1_data_ids = [save_new_ms1_record(dataset_id, ms1_file_path) for ms1_file_path in ms1_file_paths]
+                ms1_data_ids = [save_new_ms1_record(dataset_id, ms1_file_path, original_filename) for ms1_file_path, original_filename in ms1_file_paths]
             except:
                 # log database error and return
                 app.logger.error('Error saving new MS1 file info to database')
+                raise
                 return None
 
         if ms2_file_paths:
             try:
                 # save MS2 records to database
-                ms2_data_ids = [save_new_ms2_record(dataset_id, ms2_file_path) for ms2_file_path in ms2_file_paths]
+                ms2_data_ids = [save_new_ms2_record(dataset_id, ms2_file_path, original_filename) for ms2_file_path, original_filename in ms2_file_paths]
             except:
                 # log database error and return
                 app.logger.error('Error saving new MS2 file info to database')
+                raise
                 return None
 
         if sqt_file_paths or dta_file_paths:
@@ -242,20 +247,23 @@ def document_index():
             except:
                 # log DB error and return
                 app.logger.error('Error saving new Database Search to database')
+                raise
                 return None
             if sqt_file_paths:                
                 try:
                     # save SQT records to database
-                    sqt_data_ids = [save_new_sqt_record(dbsearch_id, sqt_file_path) for sqt_file_path in sqt_file_paths]
+                    sqt_data_ids = [save_new_sqt_record(dbsearch_id, sqt_file_path, original_filename) for sqt_file_path, original_filename in sqt_file_paths]
                 except:
                     app.logger.error('Error saving new SQT file info to database')
+                    raise
                     return None
             if dta_file_paths:
                 try:
                     # save DTA records to database
-                    dta_data_ids = [save_new_dta_record(dbsearch_id, dta_file_path) for dta_file_path in dta_file_paths]
+                    dta_data_ids = [save_new_dta_record(dbsearch_id, dta_file_path, original_filename) for dta_file_path, original_filename in dta_file_paths]
                 except:
                     app.logger.error('Error saving new DTA file info to database')
+                    raise
                     return None
 
         return jsonify({'dataset_id': dataset_id, 
