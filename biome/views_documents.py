@@ -31,6 +31,7 @@ from biome import ( api,
                     )
 from tempfile import mkstemp
 import re
+import json
 import shutil
 
 file_types = [  ('MS2', 'MS2'),
@@ -320,8 +321,58 @@ def dataset_info(dataset_pk):
 
     print(associated_tables)
 
+    return render_template('data/dataset.html', pk=dataset_pk)
 
-    return dataset_object.name
+@data.route('/<dataset_pk>/delete')
+def delete_dataset(dataset_pk):
+
+    ''' "Deletes" dataset (id=dataset_pk) by setting Dataset.deleted=True
+    '''
+
+    dataset_quickinfo_dict = views_helpers.get_json_response('data.dataset_quickinfo', dataset_pk)
+    dataset_quickinfo_dict = json.loads(dataset_quickinfo_dict)
+
+    # "delete" dataset
+    current_dataset = models.Dataset.query.get(dataset_pk)
+    current_dataset.deleted = True
+
+    # "delete" associated MS1 and MS2 files
+    for ms1_file_id in dataset_quickinfo_dict['ms1_files']:
+        ms1_file = models.MS1File.query.get(ms1_file_id)
+        ms1_file.deleted = True
+
+    for ms2_file_id in dataset_quickinfo_dict['ms2_files']:
+        ms2_file = models.MS2File.query.get(ms2_file_id)
+        ms2_file.deleted = True
+
+    # "delete" associated dbsearches
+    if dataset_quickinfo_dict['dbsearches']:
+        all_sqt_files = []
+        all_dta_files = []
+
+        for dbsearch_pk in dataset_quickinfo_dict['dbsearches']:
+            current_dbsearch = models.DBSearch.query.get(dbsearch_pk)
+            current_dbsearch.deleted = True
+
+            for sqt_file in current_dbsearch.sqtfiles.all():
+                all_sqt_files.append(sqt_file)
+
+            for dta_file in current_dbsearch.dtafiles.all():
+                all_dta_files.append(dta_file)
+
+        # "delete" associated SQT and DTA files
+        for sqt_file in all_sqt_files:
+            sqt_file.deleted = True
+
+        for dta_file in all_dta_files:
+            dta_file.deleted = True
+
+
+    db.session.commit()
+
+    app.logger.info('Deleted Dataset "{}" (Dataset ID {}) and associated files from database'.format(current_dataset.name, current_dataset.id))
+
+    return redirect(url_for('data.document_index')) # pass a message here confirming delete
 
 @data.route('/search/<dbsearch_pk>', methods=('GET', 'POST'))
 def dbsearch_info(dbsearch_pk):

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% set active_page = "view" %}
+
+{% block title %} - Data{% endblock %}
+
+{% block content %}
+<h1>Dataset Name</h1>
+<p class="lead">Choose from recent datasets {% block subtitle_additions %}{% endblock %}</p>
+
+<div class="row display-table">
+    <div class="col-md-7 display-cell">
+        <h3>Recent Datasets</h3>
+    </div>
+</div>
+
+<br>
+
+<a href="{{ url_for('data.delete_dataset', dataset_pk=pk) }}">
+    <button type="button" class="btn btn-danger btn-lg">Delete Dataset</button>
+</a>
+
+{% endblock %}

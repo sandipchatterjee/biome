@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 # some useful helper functions for biome.views
-
+from flask import ( current_app,
+                    )
 from hashlib import sha224
 
 def get_json_response(view_name, *args, **kwargs):
