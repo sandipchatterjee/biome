@@ -34,7 +34,7 @@
         <td class="text-center">{{ dataset_obj.description }}</td>
         <td class="text-center">{{ dataset_obj.uploaded_time.strftime('%m/%d/%Y, %I:%M %p') }}</td>
         <td class="text-center">
-            <a href="" class="quickview" data-id="{{ dataset_obj.id }}" data-href="{{ url_for('data.dataset_quickinfo', dataset_pk=dataset_obj.id) }}"><button type="button" class="btn btn-success btn-sm">Quick View</button></a>
+            <a href="" class="quickview" data-id="{{ dataset_obj.id }}" data-href="{{ url_for('api.dataset_quickinfo', dataset_pk=dataset_obj.id) }}"><button type="button" class="btn btn-success btn-sm">Quick View</button></a>
         </td>
         <td class="text-center">
             <a href="{{ url_for('data.dataset_info', dataset_pk=dataset_obj.id) }}"><button type="button" class="btn btn-primary btn-sm">View/Edit</button></a>
@@ -189,7 +189,7 @@ $(function() {
 
             var baseColumnMarkup = '<td class="text-center">{0}</td>';
 
-            var quickInfoURL = "{{ url_for('data.dataset_quickinfo', dataset_pk=-1) }}".replace('-1', data['dataset_id']);
+            var quickInfoURL = "{{ url_for('api.dataset_quickinfo', dataset_pk=-1) }}".replace('-1', data['dataset_id']);
             // leaving as "display: none" for now, button doesn't work properly because it is created after the quickview.click event
             var quickViewButton = '<a href="" class="quickview" data-id="{0}" data-href="{1}"><button style="display:none;" type="button" class="btn btn-success btn-sm">Quick View</button></a>'.format(data['dataset_id'], quickInfoURL);
 

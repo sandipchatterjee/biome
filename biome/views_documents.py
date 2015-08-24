@@ -267,26 +267,6 @@ def document_index():
 
     return render_template('data/document_index.html', upload_form=upload_form, recent_five_datasets=recent_five_datasets)
 
-@data.route('/<dataset_pk>/quickview')
-def dataset_quickinfo(dataset_pk):
-
-    ''' Returns JSON object with some basic information about
-        a dataset object with id=dataset_pk (used for "Quick View" link)
-    '''
-
-    dataset_object = models.Dataset.query.get(dataset_pk)
-    dbsearch_ids = [dbsearch.id for dbsearch in dataset_object.dbsearches.all()]
-
-    info_dict = { 'name': dataset_object.name, 
-                    'id': dataset_object.id, 
-                    'description': dataset_object.description, 
-                    'ms1_files': [ms1file.id for ms1file in dataset_object.ms1files.all()], 
-                    'ms2_files': [ms2file.id for ms2file in dataset_object.ms2files.all()], 
-                    'dbsearches': dbsearch_ids,
-                    }
-
-    return jsonify(info_dict)
-
 @data.route('/<dataset_pk>', methods=('GET', 'POST'))
 def dataset_info(dataset_pk):
 
@@ -301,7 +281,7 @@ def dataset_info(dataset_pk):
     current_dataset = models.Dataset.query.get(dataset_pk)
 
     # this is performing a second identical DB query... not ideal:
-    dataset_quickinfo_dict = views_helpers.get_json_response('data.dataset_quickinfo', dataset_pk)
+    dataset_quickinfo_dict = views_helpers.get_json_response('api.dataset_quickinfo', dataset_pk)
     dataset_quickinfo_dict = json.loads(dataset_quickinfo_dict)
 
     return render_template('data/dataset.html', dataset_id=dataset_pk, current_dataset=current_dataset, dataset_quickinfo_dict=dataset_quickinfo_dict)
@@ -319,7 +299,7 @@ def delete_dataset(dataset_pk):
     # depending on whether it should be "deleted" or "recovered"
     new_status = not request.args.get('recover', None)
 
-    dataset_quickinfo_dict = views_helpers.get_json_response('data.dataset_quickinfo', dataset_pk)
+    dataset_quickinfo_dict = views_helpers.get_json_response('api.dataset_quickinfo', dataset_pk)
     dataset_quickinfo_dict = json.loads(dataset_quickinfo_dict)
 
     # "delete" dataset
