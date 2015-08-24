@@ -26,6 +26,7 @@ from biome import ( api,
                     app, 
                     data, 
                     db, 
+                    decorators, 
                     models, 
                     views_helpers, 
                     )
@@ -40,6 +41,13 @@ file_types = [  ('MS2', 'MS2'),
                 ('MS1', 'MS1')
             ]
 file_extensions = ('ms2', 'sqt', 'txt', 'ms1')
+
+import time
+@decorators.async
+def slow_function():
+    time.sleep(15)
+    print('Some result that took 15 seconds to compute...')
+    return ''
 
 class SubmitForm(Form):
 
@@ -107,7 +115,7 @@ def save_new_ms1_record(dataset_id, file_path, original_filename=None):
     new_ms1_file = models.MS1File(file_path, dataset_id, original_filename=original_filename)
     db.session.add(new_ms1_file)
     db.session.commit()
-
+    slow_function() ##remove
     app.logger.info('Saved new MS1 file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
 
     return new_ms1_file.id
