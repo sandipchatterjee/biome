@@ -12,6 +12,7 @@ from biome import ( app,
                     data, 
                     db, 
                     models, 
+                    parsers,  
                     views_documents, 
                     views_helpers, 
                     views_plots, 
@@ -41,3 +42,41 @@ def dataset_quickinfo(dataset_pk):
                     }
 
     return jsonify(info_dict)
+
+@api.route('/dtafile/<dtafile_id>')
+def dtafile_quickinfo(dtafile_id):
+
+    ''' Returns JSON object with information about a DTAFile
+        record (with id=dtafile_id) -- used 
+    '''
+
+    dtafile_object = models.DTAFile.query.get(dtafile_id)
+
+    if not dtafile_object:
+        return jsonify({})
+
+    info_dict = {   'id': dtafile_object.id, 
+                    'file_name': dtafile_object.original_filename, 
+                    'parent_dbsearch': dtafile_object.dbsearch_id, 
+                    'created_time': str(dtafile_object.created_time), 
+                    'flags': dtafile_object.flags, 
+    }
+
+    return jsonify(info_dict)
+
+@api.route('/dtafile/<dtafile_id>.json')
+def dtafile_json(dtafile_id):
+
+    ''' Returns JSON object containing parsed DTASelect-filter.txt file
+        (from DTAFile database record with id=dtafile_id)
+    '''
+
+    dtafile_object = models.DTAFile.query.get(dtafile_id)
+
+    if not dtafile_object:
+        return jsonify({})
+
+    parsed = list(parsers.dtaselect_json(dtafile_object.file_path))
+
+    # jsonify() allow top-level arrays... http://flask.pocoo.org/docs/0.10/security/#json-security
+    return jsonify({'data':parsed})
