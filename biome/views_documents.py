@@ -10,23 +10,13 @@ from flask import ( Blueprint,
                     session, 
                     url_for, 
                     )
-from flask.ext.wtf import Form
-from wtforms import (   BooleanField, 
-                        HiddenField, 
-                        RadioField, 
-                        SelectField, 
-                        StringField, 
-                        SubmitField, 
-                        TextAreaField, 
-                        validators, 
-                    )
 from werkzeug import secure_filename
-from flask_wtf.file import FileField, FileRequired
 from biome import ( api, 
                     app, 
                     data, 
                     db, 
                     decorators, 
+                    forms, 
                     models, 
                     views_helpers, 
                     )
@@ -48,16 +38,6 @@ def slow_function():
     time.sleep(15)
     print('Some result that took 15 seconds to compute...')
     return ''
-
-class SubmitForm(Form):
-
-    '''SubmitForm is a WTForm Form object for uploading data files
-    '''
-
-    dataset_name = StringField('Dataset name:', [validators.Required(), validators.length(max=60)])
-    data_file = FileField('Data file:', [validators.Required()])
-    dataset_desc = TextAreaField('Description:', [validators.optional(), validators.length(max=500)])
-    submit = SubmitField('Upload Data')
 
 def save_new_file(file_obj):
 
@@ -190,7 +170,7 @@ def document_index():
     ''' View function for "index" page for all document types (including file uploader interface)
     '''
 
-    upload_form = SubmitForm()
+    upload_form = forms.DatasetUploadForm()
 
     recent_five_datasets = views_helpers.get_recent_records(models.Dataset, models.Dataset.uploaded_time)
 
