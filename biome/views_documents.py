@@ -32,13 +32,6 @@ file_types = [  ('MS2', 'MS2'),
             ]
 file_extensions = ('ms2', 'sqt', 'txt', 'ms1')
 
-import time
-@decorators.async
-def slow_function():
-    time.sleep(15)
-    print('Some result that took 15 seconds to compute...')
-    return ''
-
 def save_new_file(file_obj):
 
     ''' Saves a new file (specified by file_obj) to new_file_path by calculating
@@ -95,7 +88,7 @@ def save_new_ms1_record(dataset_id, file_path, original_filename=None):
     new_ms1_file = models.MS1File(file_path, dataset_id, original_filename=original_filename)
     db.session.add(new_ms1_file)
     db.session.commit()
-    slow_function() ##remove
+
     app.logger.info('Saved new MS1 file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
 
     return new_ms1_file.id
@@ -108,6 +101,8 @@ def save_new_ms2_record(dataset_id, file_path, original_filename=None):
     new_ms2_file = models.MS2File(file_path, dataset_id, original_filename=original_filename)
     db.session.add(new_ms2_file)
     db.session.commit()
+
+    views_helpers.count_scans_in_file(new_ms2_file.id, 'ms2')
 
     app.logger.info('Saved new MS2 file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
 
