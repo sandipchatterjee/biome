@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% set active_page = "view" %}
+
+{% block title %} - Data{% endblock %}
+
+{% block content %}
+<h1>DTASelect-filter File Information</h1>
+
+<p class="lead"> {% block subtitle_additions %}{% endblock %}</p>
+
+<div class="panel panel-default">
+    <div class="panel-heading"><h4>Filtered data from dataset <a href="{{ url_for('data.dataset_info', dataset_pk=parent_dataset.id) }}">{{ parent_dataset.name }}</a></h4></div>
+    <div class="panel-body">
+        <h3><small>Dataset Description</small></h3>
+        <p><em>{{ parent_dataset.description }}</em></p>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item"><h3><small>Database Search (from {{ parent_dbsearch.start_time.strftime('%m/%d/%Y, %I:%M %p') }})</small></h3>
+            <ul class="list-group">
+                {% if sqt_files %}
+                <li class="list-group-item"><h3><small>Associated SQT files</small></h3>
+                    <ul class="list-group">
+                        {% for sqt_file in sqt_files %}
+                        <li class="list-group-item">{{ sqt_file.original_filename }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% else %}
+                <li class="list-group-item"><h3><small><em>No Associated SQT files</em></small></h3></li>
+                {% endif %}
+            </ul>
+        </li>
+
+        <li class="list-group-item"><h3><small>Download Data</small></h3>
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <strong>
+                        <a href="{{ url_for('api.dtafile_json', dtafile_id=current_dtafile.id) }}">Parsed JSON</a>
+                    </strong>
+                </li>
+            </ul>
+        </li>
+
+        {% if current_dtafile.flags %}
+        <li class="list-group-item"><h3><small>Filtering Flags</small></h3>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>{{ current_dtafile.flags }}</strong></li>
+            </ul>
+        </li>
+        {% endif %}
+
+    </ul>
+
+    <div class="panel-footer">
+        <div class="row">
+            <div class="col-md-6 deleteDatasetButton"> 
+                {% if current_dtafile.deleted %}
+                <a href="{{ url_for('data.delete_dtafile', dtafile_pk=current_dtafile.id, recover=True) }}">
+                    <button type="button" class="btn btn-primary btn-lg btn-block">Recover DTASelect-filter file</button>
+                </a>
+                {% else %}
+                <a href="{{ url_for('data.delete_dtafile', dtafile_pk=current_dtafile.id) }}">
+                    <button type="button" class="btn btn-danger btn-lg btn-block">Delete DTASelect-filter file</button>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="bottomBreadcrumb">
+    <ol class="breadcrumb">
+      <li><a href="{{ url_for('index') }}">Home</a></li>
+      <li><a href="{{ url_for('data.document_index') }}">View Data</a></li>
+      <li><a href="{{ url_for('data.dataset_info', dataset_pk=parent_dataset.id) }}">Dataset: {{ parent_dataset.name }} </a></li>
+      <li><a href="{{ url_for('data.dtafile_index') }}">DTA</a></li>
+      <li class="active">DTASelect Result</li>
+    </ol>
+</div>
+
+{% endblock %}

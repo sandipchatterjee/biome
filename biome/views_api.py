@@ -43,7 +43,7 @@ def dataset_quickinfo(dataset_pk):
 
     return jsonify(info_dict)
 
-@api.route('/dtafile/<dtafile_id>')
+@api.route('/dta/<dtafile_id>')
 def dtafile_quickinfo(dtafile_id):
 
     ''' Returns JSON object with information about a DTAFile
@@ -64,7 +64,7 @@ def dtafile_quickinfo(dtafile_id):
 
     return jsonify(info_dict)
 
-@api.route('/dtafile/<dtafile_id>.json')
+@api.route('/dta/<dtafile_id>.json')
 def dtafile_json(dtafile_id):
 
     ''' Returns JSON object containing parsed DTASelect-filter.txt file

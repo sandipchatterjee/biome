@@ -278,13 +278,52 @@ def dataset_info(dataset_pk):
         Allows editing/deleting of associated files (or entire dataset)
     '''
 
-    current_dataset = models.Dataset.query.get(dataset_pk)
+    current_dataset = models.Dataset.query.get_or_404(dataset_pk)
 
     # this is performing a second identical DB query... not ideal:
     dataset_quickinfo_dict = views_helpers.get_json_response('api.dataset_quickinfo', dataset_pk)
     dataset_quickinfo_dict = json.loads(dataset_quickinfo_dict)
 
     return render_template('data/dataset.html', dataset_id=dataset_pk, current_dataset=current_dataset, dataset_quickinfo_dict=dataset_quickinfo_dict)
+
+@data.route('/dta/<dtafile_pk>', methods=('GET', 'POST'))
+def dtafile_info(dtafile_pk):
+
+    ''' View function that displays information about a 
+        DTAFile with id=dtafile_pk
+
+        Looks up associated files via associated tables.
+
+        Allows editing/deleting of associated files (or entire dataset)
+    '''
+
+    current_dtafile = models.DTAFile.query.get_or_404(dtafile_pk)
+
+    # this is performing a second identical DB query... not ideal:
+    dtafile_quickinfo_dict = views_helpers.get_json_response('api.dtafile_quickinfo', dtafile_pk)
+    dtafile_quickinfo_dict = json.loads(dtafile_quickinfo_dict)
+
+    parent_dbsearch = models.DBSearch.query.get_or_404(dtafile_quickinfo_dict['parent_dbsearch'])
+    sqt_files = parent_dbsearch.sqtfiles.all()
+    parent_dataset = models.Dataset.query.get_or_404(parent_dbsearch.dataset_id)
+
+    return render_template( 'data/dtafile.html', 
+                            current_dtafile=current_dtafile, 
+                            parent_dbsearch=parent_dbsearch, 
+                            sqt_files=sqt_files, 
+                            parent_dataset=parent_dataset, 
+                            dtafile_quickinfo_dict=dtafile_quickinfo_dict)
+
+@data.route('/dta', methods=('GET', 'POST'))
+def dtafile_index():
+
+    ''' List view for all DTASelect files
+        (all rows in DTAFile relation)
+    '''
+
+    all_dta_files = models.DTAFile.query.all()
+
+    return str([dtafile.id for dtafile in all_dta_files])
 
 @data.route('/<dataset_pk>/delete')
 def delete_dataset(dataset_pk):
@@ -343,6 +382,10 @@ def delete_dataset(dataset_pk):
 
     return redirect(url_for('data.document_index')) # pass a message here confirming delete
 
+@data.route('/dta/<dtafile_pk>/delete')
+def delete_dtafile(dtafile_pk):
+    return 'Deleted!'
+
 @data.route('/search/<dbsearch_pk>', methods=('GET', 'POST'))
 def dbsearch_info(dbsearch_pk):
 
@@ -362,9 +405,3 @@ def ms2file_info(ms2file_pk):
 def sqtfile_info(sqtfile_pk):
 
     return ''
-
-@data.route('/dta/<dtafile_pk>', methods=('GET', 'POST'))
-def dtafile_info(dtafile_pk):
-
-    return ''
-

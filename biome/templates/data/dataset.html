@@ -42,7 +42,9 @@
                     
                     <ul class="list-group"><h5>DTASelect-filter files</h5>
                         {% for dtafile in dbsearch.dtafiles.all() %}
-                        <li class="list-group-item">{{ dtafile.original_filename }}</li>
+                        <li class="list-group-item">
+                            <a href="{{ url_for('data.dtafile_info', dtafile_pk=dtafile.id) }}">{{ dtafile.original_filename }}</a>
+                        </li>
                         {% endfor %}
                     </ul>
                 </li>
@@ -58,11 +60,11 @@
             <div class="col-md-6 deleteDatasetButton"> 
                 {% if current_dataset.deleted %}
                 <a href="{{ url_for('data.delete_dataset', dataset_pk=dataset_id, recover=True) }}">
-                    <button type="button" class="btn btn-primary btn-lg btn-block">Recover Dataset</button>
+                    <button type="button" class="btn btn-primary btn-lg btn-block">Recover Dataset (and associated files)</button>
                 </a>
                 {% else %}
                 <a href="{{ url_for('data.delete_dataset', dataset_pk=dataset_id) }}">
-                    <button type="button" class="btn btn-danger btn-lg btn-block">Delete Dataset</button>
+                    <button type="button" class="btn btn-danger btn-lg btn-block">Delete Dataset (and associated files)</button>
                 </a>
                 {% endif %}
             </div>
