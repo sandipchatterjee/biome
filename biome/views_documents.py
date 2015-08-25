@@ -384,7 +384,15 @@ def delete_dataset(dataset_pk):
 
 @data.route('/dta/<dtafile_pk>/delete')
 def delete_dtafile(dtafile_pk):
-    return 'Deleted!'
+
+    new_status = not request.args.get('recover', None)
+
+    current_dtafile = models.DTAFile.query.get(dtafile_pk)
+    current_dtafile.deleted = new_status
+
+    db.session.commit()
+
+    return redirect(url_for('data.dtafile_index')) # pass a message here confirming delete
 
 @data.route('/search/<dbsearch_pk>', methods=('GET', 'POST'))
 def dbsearch_info(dbsearch_pk):

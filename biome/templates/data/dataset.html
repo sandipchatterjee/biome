@@ -44,6 +44,7 @@
                         {% for dtafile in dbsearch.dtafiles.all() %}
                         <li class="list-group-item">
                             <a href="{{ url_for('data.dtafile_info', dtafile_pk=dtafile.id) }}">{{ dtafile.original_filename }}</a>
+                            {% if dtafile.deleted %}<em>(deleted)</em>{% endif %}
                         </li>
                         {% endfor %}
                     </ul>
