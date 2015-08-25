@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% set active_page = "view" %}
+
+{% block title %} - Data{% endblock %}
+
+{% block content %}
+<h1>View and Manage DTASelect-filter Files{% block title_additions %}{% endblock %}</h1>
+
+{% if request.args.get('recover', None) %}
+<p class="lead">Recover Deleted Files</p>
+{% endif %}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th class="text-center">Dataset name</th>
+            <th class="text-center">Description</th>
+            <th class="text-center">Date created</th>
+            {% if request.args.get('recover', None) %}
+            <th class="text-center"></th> <!-- Recover Button -->
+            {% endif %}
+            <th class="text-center"></th> 
+
+        </tr>
+    </thead>
+    <tr id="newDataset">
+    </tr>
+    {% for dtafile, parent_dataset in all_dta_files %}
+    <tr>
+        <td class="text-center">{{ parent_dataset.name }}</td>
+        <td class="text-center">{{ parent_dataset.description }}</td>
+        <td class="text-center">{{ dtafile.created_time.strftime('%m/%d/%Y, %I:%M %p') }}</td>
+        {% if request.args.get('recover', None) %}
+        <td class="text-center">
+            <a href="{{ url_for('data.delete_dtafile', dtafile_pk=dtafile.id, recover=True) }}"><button type="button" class="btn btn-info btn-sm">Recover File</button></a>
+        </td>
+        {% endif %}
+        <td class="text-center">
+            <a href="{{ url_for('data.dtafile_info', dtafile_pk=dtafile.id) }}"><button type="button" class="btn btn-primary btn-sm">View/Edit</button></a>
+        </td>
+    {% endfor %}
+    </tr>
+</table>
+
+{% if not request.args.get('recover', None) %}
+<a href="{{ url_for('data.dtafile_index', recover=True) }}"><button type="button" class="btn btn-info btn-lg">Recover Deleted Files</button></a>
+{% endif %}
+
+{% endblock %}

@@ -321,9 +321,14 @@ def dtafile_index():
         (all rows in DTAFile relation)
     '''
 
-    all_dta_files = models.DTAFile.query.all()
+    show_all = request.args.get('recover', False)
 
-    return str([dtafile.id for dtafile in all_dta_files])
+    all_dta_files = models.DTAFile.query.filter_by(deleted=show_all).order_by(models.DTAFile.created_time.desc()).all()
+    
+    # probably really inefficient...
+    all_dta_files_parents = [models.Dataset.query.get(models.DBSearch.query.get(dta_file.dbsearch_id).dataset_id) for dta_file in all_dta_files]
+
+    return render_template('data/dtafile_index.html', all_dta_files=zip(all_dta_files, all_dta_files_parents))
 
 @data.route('/<dataset_pk>/delete')
 def delete_dataset(dataset_pk):
