@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% set active_page = "view" %}
+
+{% block head_additions %}
+{{ plot_resources|indent(4)|safe }}
+{{ plot_script|indent(4)|safe }}
+{% endblock %}
+
+{% block title %} - Data{% endblock %}
+
+{% block content %}
+<h1>Peptides identified per LC Step</h1>
+
+<p class="lead"> {% block subtitle_additions %}{% endblock %}</p>
+
+<div class="panel panel-default">
+    <div class="panel-heading"><h4>Filtered data from dataset <a href="{{ url_for('data.dataset_info', dataset_pk=parent_dataset.id) }}">{{ parent_dataset.name }}</a></h4></div>
+    <div class="panel-body">
+        <h3><small>Dataset Description</small></h3>
+        <p><em>{{ parent_dataset.description }}</em></p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+        {{ plot_div|indent(5)|safe }}
+        </div>
+    </div>
+
+</div>
+
+<div id="bottomBreadcrumb">
+    <ol class="breadcrumb">
+      <li><a href="{{ url_for('index') }}">Home</a></li>
+      <li><a href="{{ url_for('data.document_index') }}">View Data</a></li>
+      <li><a href="{{ url_for('data.dataset_info', dataset_pk=parent_dataset.id) }}">Dataset: {{ parent_dataset.name }} </a></li>
+      <li><a href="{{ url_for('data.dtafile_index') }}">DTA</a></li>
+      <li><a href="{{ url_for('data.dtafile_info', dtafile_pk=current_dtafile.id) }}">DTASelect File</a></li>
+      <li class="active">Analysis Module</li>
+    </ol>
+</div>
+
+{% endblock %}
