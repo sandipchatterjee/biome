@@ -467,7 +467,8 @@ def launch_task():
     ''' Sample view that launches a celery async task
     '''
 
-    task = tasks.celery_background_task.apply_async(args=[10, 20])
+    task = tasks.echo.apply_async(args=['hello world'], queue='sandip')
+
     app.logger.info('Launched Celery task {}'.format(task))
 
     return 'Launched!'

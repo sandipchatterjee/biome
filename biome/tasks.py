@@ -20,3 +20,12 @@ def celery_background_task(arg1, arg2):
     print('waking up')
 
     return arg1+arg2
+
+@celery.task(name='submit_blazmass_worker.echo')
+def echo():
+
+    ''' For testing out remote Celery worker 
+    '''
+
+    pass
+
