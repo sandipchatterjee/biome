@@ -11,6 +11,9 @@ class BaseConfig(object):
     SECRET_KEY = 'secret_key_from_env'
     UPLOAD_FOLDER = os.getcwd()+'/'+'biome/data_files'
 
+    CELERY_BROKER_URL = 'redis://localhost:6379/0'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://'
 
 class DevConfig(BaseConfig):

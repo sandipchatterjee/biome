@@ -18,6 +18,7 @@ from biome import ( api,
                     decorators, 
                     forms, 
                     models, 
+                    tasks, 
                     views_helpers, 
                     )
 from tempfile import mkstemp
@@ -459,3 +460,15 @@ def sqtfile_index():
 def delete_sqtfile(sqtfile_pk):
     # will integrate this into delete_dtafile (to make one universal "delete one file" view instead of duplicating code)
     return 'not implemented yet' 
+
+@data.route('/launchtask')
+def launch_task():
+
+    ''' Sample view that launches a celery async task
+    '''
+
+    task = tasks.celery_background_task.apply_async(args=[10, 20])
+    app.logger.info('Launched Celery task {}'.format(task))
+
+    return 'Launched!'
+

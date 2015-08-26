@@ -6,14 +6,18 @@ from flask import ( Blueprint,
                     render_template, 
                     request, 
                     )
+from celery import Celery
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_wtf import Form
 from biome.config import set_config
 
 api = Blueprint('api', __name__)
 data = Blueprint('data', __name__)
+
 app = Flask(__name__, static_folder='static')
 set_config(app)
+
+celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'], backend=app.config['CELERY_RESULT_BACKEND'])
 
 db = SQLAlchemy(app)
 
