@@ -47,7 +47,7 @@ def dataset_quickinfo(dataset_pk):
 def dtafile_quickinfo(dtafile_id):
 
     ''' Returns JSON object with information about a DTAFile
-        record (with id=dtafile_id) -- used 
+        record (with id=dtafile_id)
     '''
 
     dtafile_object = models.DTAFile.query.get(dtafile_id)
@@ -60,7 +60,30 @@ def dtafile_quickinfo(dtafile_id):
                     'parent_dbsearch': dtafile_object.dbsearch_id, 
                     'created_time': str(dtafile_object.created_time), 
                     'flags': dtafile_object.flags, 
-    }
+                    'deleted': dtafile_object.deleted, 
+                    }
+
+    return jsonify(info_dict)
+
+@api.route('/sqt/<sqtfile_id>')
+def sqtfile_quickinfo(sqtfile_id):
+
+    ''' Returns JSON object with information about an SQTFile
+        record (with id=sqtfile_id)
+    '''
+
+    sqtfile_object = models.SQTFile.query.get(sqtfile_id)
+
+    if not sqtfile_object:
+        return jsonify({})
+
+    info_dict = {   'id': sqtfile_object.id, 
+                    'file_name': sqtfile_object.original_filename, 
+                    'parent_dbsearch': sqtfile_object.dbsearch_id, 
+                    'created_time': str(sqtfile_object.created_time), 
+                    'deleted': sqtfile_object.deleted, 
+                    'scans': sqtfile_object.scans, 
+                    }
 
     return jsonify(info_dict)
 

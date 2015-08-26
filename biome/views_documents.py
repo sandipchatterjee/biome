@@ -132,6 +132,8 @@ def save_new_sqt_record(dbsearch_id, file_path, original_filename=None):
     db.session.add(new_sqt_file)
     db.session.commit()
 
+    views_helpers.count_scans_in_file(new_sqt_file.id, 'sqt')
+
     app.logger.info('Saved new SQT file {} (Dataset ID {}) to database'.format(file_path, dbsearch_id))
 
     return new_sqt_file.id
@@ -412,4 +414,48 @@ def ms2file_info(ms2file_pk):
 @data.route('/sqt/<sqtfile_pk>', methods=('GET', 'POST'))
 def sqtfile_info(sqtfile_pk):
 
-    return ''
+    ''' View function that displays information about a 
+        SQTFile with id=sqtfile_pk
+
+        Looks up associated files via associated tables.
+
+        Allows editing/deleting of associated files (or entire dataset)
+    '''
+
+    current_sqtfile = models.SQTFile.query.get_or_404(sqtfile_pk)
+
+    # this is performing a second identical DB query... not ideal:
+    sqtfile_quickinfo_dict = views_helpers.get_json_response('api.sqtfile_quickinfo', sqtfile_pk)
+    sqtfile_quickinfo_dict = json.loads(sqtfile_quickinfo_dict)
+
+    parent_dbsearch = models.DBSearch.query.get_or_404(sqtfile_quickinfo_dict['parent_dbsearch'])
+    dta_files = parent_dbsearch.dtafiles.all()
+    parent_dataset = models.Dataset.query.get_or_404(parent_dbsearch.dataset_id)
+
+    return render_template( 'data/sqtfile.html', 
+                            current_sqtfile=current_sqtfile, 
+                            parent_dbsearch=parent_dbsearch, 
+                            dta_files=dta_files, 
+                            parent_dataset=parent_dataset, 
+                            sqtfile_quickinfo_dict=sqtfile_quickinfo_dict)
+
+@data.route('/sqt', methods=('GET', 'POST'))
+def sqtfile_index():
+
+    ''' List view for all SQT files
+        (all rows in SQTFile relation)
+    '''
+
+    show_all = request.args.get('recover', False)
+
+    all_sqt_files = models.SQTFile.query.filter_by(deleted=show_all).order_by(models.SQTFile.created_time.desc()).all()
+    
+    # probably really inefficient...
+    all_sqt_files_parents = [models.Dataset.query.get(models.DBSearch.query.get(sqt_file.dbsearch_id).dataset_id) for sqt_file in all_sqt_files]
+
+    return render_template('data/sqtfile_index.html', all_sqt_files=zip(all_sqt_files, all_sqt_files_parents))
+
+@data.route('/sqt/<sqtfile_pk>/delete')
+def delete_sqtfile(sqtfile_pk):
+    # will integrate this into delete_dtafile (to make one universal "delete one file" view instead of duplicating code)
+    return 'not implemented yet' 
