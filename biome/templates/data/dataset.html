@@ -16,13 +16,15 @@
             <p><em>{{ current_dataset.description }}</em></p>
         </div>
         <div class="col-md-6">
+            {% if current_dataset.ms2files.all() %}
             <a href="{{ url_for('data.new_search', dataset_pk=current_dataset.id) }}" class="btn btn-warning btn-lg pull-right">New Proteomic Search</a>
+            {% endif %}
         </div>
     </div>
     <ul class="list-group">
-        <!-- <li class="list-group-item"><h3><small>MS1 files</small></h3> -->
+        <li class="list-group-item"><h3><small>MS1 files</small></h3>
             <ul class="list-group">
-                <!-- {% for file_object in current_dataset.ms1files.all() %} -->
+                {% for file_object in current_dataset.ms1files.all() %}
                 <li class="list-group-item">{{ file_object.original_filename }}</li>
                 {% endfor %}
             </ul>

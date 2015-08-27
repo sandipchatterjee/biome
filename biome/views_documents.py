@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-from flask import ( Blueprint, 
+from flask import ( abort, 
+                    Blueprint, 
                     current_app,
                     flash,  
                     jsonify, 
@@ -482,6 +483,8 @@ def new_search(dataset_pk):
 
     current_dataset = models.Dataset.query.get_or_404(dataset_pk)
     ms2_files = current_dataset.ms2files.all()
+    if not ms2_files:
+        abort(404)
 
     params_form = forms.SearchParamsForm()
 
