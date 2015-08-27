@@ -253,6 +253,17 @@ $(function() {
 });
 
 $(function() {
+    $('#search_name').focusout(function () {
+        if (!$(this).val()) {
+            $('#search_name').addClass('highlight-form-field');
+        }
+        else {
+            $('#search_name').removeClass('highlight-form-field');
+        }
+    });
+});
+
+$(function() {
     $('#submitSearchButton').click(function(event) {
         event.preventDefault();
         var form_data = new FormData($('#submitSearchForm')[0]);
