@@ -11,13 +11,18 @@
 <div class="panel panel-default">
     <div class="panel-heading"><h4>{{ current_dataset.name }}</h4></div>
     <div class="panel-body">
-        <h3><small>Description</small></h3>
-        <p><em>{{ current_dataset.description }}</em></p>
+        <div class="col-md-6 pull-left">
+            <h3><small>Description</small></h3>
+            <p><em>{{ current_dataset.description }}</em></p>
+        </div>
+        <div class="col-md-6">
+            <a href="{{ url_for('data.new_search', dataset_pk=current_dataset.id) }}" class="btn btn-warning btn-lg pull-right">New Proteomic Search</a>
+        </div>
     </div>
     <ul class="list-group">
-        <li class="list-group-item"><h3><small>MS1 files</small></h3>
+        <!-- <li class="list-group-item"><h3><small>MS1 files</small></h3> -->
             <ul class="list-group">
-                {% for file_object in current_dataset.ms1files.all() %}
+                <!-- {% for file_object in current_dataset.ms1files.all() %} -->
                 <li class="list-group-item">{{ file_object.original_filename }}</li>
                 {% endfor %}
             </ul>
