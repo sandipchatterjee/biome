@@ -25,6 +25,7 @@ from tempfile import mkstemp
 import re
 import json
 import shutil
+import decimal
 
 file_types = [  ('MS2', 'MS2'),
                 ('DTA', 'DTA'),
@@ -472,4 +473,31 @@ def launch_task():
     app.logger.info('Launched Celery task {}'.format(task))
 
     return 'Launched!'
+
+@data.route('/<dataset_pk>/newsearch', methods=('GET', 'POST'))
+def new_search(dataset_pk):
+    
+    ''' Perform a new database search
+    '''
+
+    current_dataset = models.Dataset.query.get_or_404(dataset_pk)
+    ms2_files = current_dataset.ms2files.all()
+
+    params_form = forms.SearchParamsForm()
+
+    if params_form.validate_on_submit():
+
+        params = json.loads(json.dumps(dict(params_form.data.items()), default=lambda x: float(x) if isinstance(x, decimal.Decimal) else x))
+        new_dbsearch_id = save_new_dbsearch(dataset_pk, params=params)
+
+        params['dbsearch_id'] = new_dbsearch_id
+        import time; time.sleep(5);
+
+        return jsonify(params)
+
+    return render_template( 'data/newsearch.html', 
+                            params_form=params_form, 
+                            current_dataset=current_dataset, 
+                            ms2_files=ms2_files, 
+                            )
 

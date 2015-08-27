@@ -28,6 +28,12 @@ input[readonly] {
   color: #7A7A7A;
 }
 
+.form-label-small {
+  font-size: 1em;
+  font-weight: normal;
+  color: #7A7A7A;
+}
+
 form .row {
   margin-bottom: 1em;
 }
@@ -39,4 +45,8 @@ form .row {
 div .deleteDatasetButton {
   float: none;
   margin: 0 auto;
+}
+
+.hidden {
+  display: none;
 }

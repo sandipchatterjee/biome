@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% set active_page = "search" %}
+
+{% block title %} - New Search{% endblock %}
+
+{% block content %}
+<h1>Start new ComPIL search{% block title_additions %}{% endblock %}</h1>
+<p class="lead">Dataset "{{ current_dataset.name }}" {% block subtitle_additions %}{% endblock %}</p>
+
+<div class="row">
+
+    <div class="col-md-6">
+    <h3>
+        Set search parameters
+    </h3>
+        <form id="submitSearchForm" method="POST" enctype="multipart/form-data">
+            {{ params_form.csrf_token }}
+
+            <div class="row">
+                <div class="col-md-12">
+                {{ params_form.search_name.label(class="form-label-small") }} 
+                <small><em>
+                    (60 character max, <strong>required</strong>)
+                </em></small>
+                {{ params_form.search_name(class="form-control") }}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <strong>Database Parameters</strong>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                {{ params_form.mongodb_host.label(class="form-label-small") }} 
+                {{ params_form.mongodb_host(class="form-control") }}
+                </div>
+                <div class="col-md-6">
+                {{ params_form.mongodb_port.label(class="form-label-small") }}
+                {{ params_form.mongodb_port(class="form-control") }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                {{ params_form.is_sharded() }}
+                {{ params_form.is_sharded.label(class="form-label-small") }} 
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                {{ params_form.massdb_name.label(class="form-label-small") }} 
+                {{ params_form.massdb_name(class="form-control") }}
+                </div>
+                <div class="col-md-6">
+                {{ params_form.massdbcoll.label(class="form-label-small") }} 
+                {{ params_form.massdbcoll(class="form-control") }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                {{ params_form.use_seqdb() }}
+                {{ params_form.use_seqdb.label(class="form-label-small") }} 
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                {{ params_form.seqdb_name.label(class="form-label-small") }} 
+                {{ params_form.seqdb_name(class="form-control") }}
+                </div>
+                <div class="col-md-6">
+                {{ params_form.seqdbcoll.label(class="form-label-small") }} 
+                {{ params_form.seqdbcoll(class="form-control") }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                {{ params_form.use_protdb() }}
+                {{ params_form.use_protdb.label(class="form-label-small") }} 
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                {{ params_form.protdb_name.label(class="form-label-small") }} 
+                {{ params_form.protdb_name(class="form-control") }}
+                </div>
+                <div class="col-md-6">
+                {{ params_form.protdbcoll.label(class="form-label-small") }} 
+                {{ params_form.protdbcoll(class="form-control") }}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <a href="" class="btn btn-primary btn-sm" id="ModsErrorParamsButton">
+                      &nbsp;<span class="glyphicon glyphicon-th-list" aria-hidden="true" style="vertical-align:-1px"></span>&nbsp;&nbsp;&nbsp;Modifications &amp; Mass Error Tolerance&nbsp;
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <strong>Modifications &amp; Mass Error Tolerance</strong>
+                </div>
+            </div>
+            <div style="display:none;" id="ModsErrorParams">
+                <div class="row">
+                    <div class="col-md-12">
+                    {{ params_form.diff_search_options.label(class="form-label-small") }} 
+                    {{ params_form.diff_search_options(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                    {{ params_form.diff_search_Nterm.label(class="form-label-small") }} 
+                    {{ params_form.diff_search_Nterm(class="form-control") }}
+                    </div>
+                    <div class="col-md-6">
+                    {{ params_form.diff_search_Cterm.label(class="form-label-small") }} 
+                    {{ params_form.diff_search_Cterm(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                    {{ params_form.ppm_peptide_mass_tolerance.label(class="form-label-small") }} 
+                    {{ params_form.ppm_peptide_mass_tolerance(class="form-control") }}
+                    </div>
+                    <div class="col-md-6">
+                    {{ params_form.ppm_fragment_ion_tolerance.label(class="form-label-small") }} 
+                    {{ params_form.ppm_fragment_ion_tolerance(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                    {{ params_form.ppm_fragment_ion_tolerance_high() }}
+                    {{ params_form.ppm_fragment_ion_tolerance_high.label(class="form-label-small") }} 
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <strong>Filtering Parameters</strong>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                {{ params_form.sfp.label(class="form-label-small") }} 
+                {{ params_form.sfp(class="form-control") }}
+                </div>
+                <div class="col-md-6">
+                {{ params_form.ppp.label(class="form-label-small") }} 
+                {{ params_form.ppp(class="form-control") }}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <a href="" class="btn btn-primary btn-sm" id="advancedParamsButton">
+                      &nbsp;<span class="glyphicon glyphicon-th-list" aria-hidden="true" style="vertical-align:-1px"></span>&nbsp;&nbsp;&nbsp;Advanced Parameters&nbsp;
+                    </a>
+                </div>
+            </div>
+
+            <div style="display:none;" id="advancedParams">
+                <div class="row">
+                    <div class="col-md-12">
+                    {{ params_form.verbose() }}
+                    {{ params_form.verbose.label(class="form-label-small") }} 
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                    {{ params_form.blazmass_jar.label(class="form-label-small") }} 
+                    {{ params_form.blazmass_jar(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                    {{ params_form.temp.label(class="form-label-small") }} 
+                    {{ params_form.temp(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                    {{ params_form.server_preset.label(class="form-label-small") }} 
+                    {{ params_form.server_preset(class="form-control") }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12" id="submitSearchDiv">
+                {{ params_form.submit(class="btn btn-warning btn-lg pull-right", id="submitSearchButton") }}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-md-6">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="text-center">MS2 File</th>
+                    <th class="text-center">Scans</th>
+                </tr>
+            </thead>
+
+            {% if ms2_files %}
+                {% for ms2_file in ms2_files %}
+                <tr>
+                    <td class="text-center">{{ ms2_file.original_filename }}</td>
+                    <td class="text-center">{{ ms2_file.scans }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+            <tr>
+                <td class="text-center"><em>no associated MS2 files</em></td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/biome.js') }}"></script>
+<script>
+$(function() {
+    $('#ModsErrorParamsButton').click(function(event) {
+        event.preventDefault();
+        if ( $('#ModsErrorParams').is( ':hidden' ) ) {
+            $('#ModsErrorParamsButton').addClass('active');
+            $('#ModsErrorParams').slideDown();
+        } else {
+            $('#ModsErrorParamsButton').removeClass('active');
+            $('#ModsErrorParams').slideUp();
+        }
+
+    });
+});
+
+$(function() {
+    $('#advancedParamsButton').click(function(event) {
+        event.preventDefault();
+        if ( $('#advancedParams').is( ':hidden' ) ) {
+            $('#advancedParamsButton').addClass('active');
+            $('#advancedParams').slideDown();
+        } else {
+            $('#advancedParamsButton').removeClass('active');
+            $('#advancedParams').slideUp();
+        }
+
+    });
+});
+
+$(function() {
+    $('#submitSearchButton').click(function(event) {
+        event.preventDefault();
+        var form_data = new FormData($('#submitSearchForm')[0]);
+
+        $('#submitSearchButton').fadeToggle( 'fast', function() {
+            $('#buttonStatusArea').text('submitting');
+            }
+        );
+
+        $("#submitSearchDiv").html('<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div></div>');
+
+        $.ajax({
+            type: 'POST',
+            // url: '/data/',
+            data: form_data,
+            contentType: false,
+            processData: false,
+            dataType: 'json'
+        }).done(function(data, textStatus, jqXHR){
+            console.log(data);
+            console.log(textStatus);
+            console.log(jqXHR);
+            console.log('Success!');
+            $('#submitSearchDiv').hide().html('<a href="" class="btn btn-success btn-block">View Status</a>').fadeIn('slow');
+
+        }).fail(function(data){
+            $("#submitSearchDiv").html('<h2>Error starting search</h2>');
+        });
+
+    });
+});
+
+
+</script>
+
+{% endblock %}
