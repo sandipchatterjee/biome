@@ -78,11 +78,14 @@ class SearchParamsForm(Form):
     blazmass_jar = StringField( 'Path to Blazmass JAR', 
                                 default='/gpfs/home/gstupp/blazmass/blazmass.jar', 
                                 )
+    dtaselect_classpath = StringField(   'Path to DTASelect (classpath)', 
+                                    default='/gpfs/home/gstupp/DTASelect2', 
+                                    )
     temp = StringField(        'Temporary directory name', 
                                 default='dummy', 
                                 )
     verbose = BooleanField(    'Verbose logging', 
-                                default='dummy',
+                                default=True, 
                                 )
     ppm_peptide_mass_tolerance = DecimalField(  'ppm precursor (peptide) mass tolerance',
                                                 places=1, 
@@ -119,4 +122,12 @@ class SearchParamsForm(Form):
     ppp = IntegerField( '# required peptides per protein',
                         default=2, 
                         )
+    use_job_spacing = BooleanField(    'Use job submission spacing', 
+                                )
+    job_spacing = IntegerField( '# minutes to wait between submitting jobs',
+                                default=1, 
+                                )
+    job_spacing_init = IntegerField(    '# jobs to submit initially (if using job_spacing)',
+                                        default=0, 
+                                        )
     submit = SubmitField('Run Search')

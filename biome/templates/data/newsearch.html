@@ -177,6 +177,12 @@
                 </div>
                 <div class="row">
                     <div class="col-md-12">
+                    {{ params_form.dtaselect_classpath.label(class="form-label-small") }} 
+                    {{ params_form.dtaselect_classpath(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
                     {{ params_form.temp.label(class="form-label-small") }} 
                     {{ params_form.temp(class="form-control") }}
                     </div>
@@ -185,6 +191,22 @@
                     <div class="col-md-12">
                     {{ params_form.server_preset.label(class="form-label-small") }} 
                     {{ params_form.server_preset(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                    {{ params_form.use_job_spacing() }}
+                    {{ params_form.use_job_spacing.label(class="form-label-small") }} 
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                    {{ params_form.job_spacing.label(class="form-label-small") }}
+                    {{ params_form.job_spacing(class="form-control") }}
+                    </div>
+                    <div class="col-md-6">
+                    {{ params_form.job_spacing_init.label(class="form-label-small") }}
+                    {{ params_form.job_spacing_init(class="form-control") }}
                     </div>
                 </div>
             </div>
