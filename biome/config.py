@@ -45,6 +45,10 @@ class TestConfig(BaseConfig):
     DEBUG = False
     TESTING = True
 
+    # might change this to SQLite in the future... (doesn't have JSON support)
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://sandip@localhost:5432/biometesting'
+    # SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+
 config = {  'development': 'biome.config.DevConfig', 
             'testing': 'biome.config.TestConfig', 
             'development_tsri': 'biome.config.DevConfigTSRI', 

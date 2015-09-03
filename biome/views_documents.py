@@ -135,8 +135,6 @@ def save_new_sqt_record(dbsearch_id, file_path, original_filename=None):
     db.session.add(new_sqt_file)
     db.session.commit()
 
-    views_helpers.count_scans_in_file(new_sqt_file.id, 'sqt')
-
     app.logger.info('Saved new SQT file {} (Dataset ID {}) to database'.format(file_path, dbsearch_id))
 
     return new_sqt_file.id
@@ -242,6 +240,8 @@ def document_index():
                 try:
                     # save SQT records to database
                     sqt_data_ids = [save_new_sqt_record(dbsearch_id, sqt_file_path, original_filename) for sqt_file_path, original_filename in sqt_file_paths]
+                    for sqt_data_id in sqt_data_ids:
+                        views_helpers.count_scans_in_file(sqt_data_id, 'sqt')
                 except:
                     app.logger.error('Error saving new SQT file info to database')
                     raise
