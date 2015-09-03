@@ -3777,12 +3777,22 @@ class BaseMS1FileCreatedTestCase(BaseDatasetCreatedTestCase):
     '''
 
     def setUp(self):
+
+        ''' Create row in MS1File table
+        '''
+
         super().setUp()
-        # not implemented yet
+        self.ms1file_id = views_documents.save_new_ms1_record(self.dataset_id, self.ms1_file_path, original_filename=self.ms1_file_name)
+        self.ms1file_obj = models.MS1File.query.get(self.ms1file_id)
 
     def tearDown(self):
+
+        ''' Delete row in MS1File table
+        '''
+
+        db.session.delete(self.ms1file_obj) # this might be unnecessary. super() will drop the whole table
+        db.session.commit()
         super().tearDown()
-        # not implemented yet
 
 class BaseMS2FileCreatedTestCase(BaseDatasetCreatedTestCase):
 
