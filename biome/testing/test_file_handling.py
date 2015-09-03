@@ -14,7 +14,6 @@ from biome import ( app,
                     views_documents, 
                     views_helpers, 
                     )
-from biome.config import set_config
 from biome.testing import base
 
 class TestSaveFile(base.BaseFileInfoTestCase):
@@ -150,7 +149,3 @@ class FileValidationTests(base.BaseFileSavedTestCase):
                         )
 
         self.assertFalse(views_documents.check_file_types(file_list))
-
-
-if __name__ == '__main__':
-    unittest.main()

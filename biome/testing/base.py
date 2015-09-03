@@ -3681,8 +3681,99 @@ class BaseFileSavedTestCase(BaseFileInfoTestCase):
 
 class BaseDatasetCreatedTestCase(BaseFileSavedTestCase):
 
-    ''' Base test case with one Dataset created in database
-        (and one file of each type saved to tmp file paths)
+    ''' Base test case with one Dataset created in the database
+
+        (and one file of each type saved to tmp file paths, 
+        but none of their records saved to database)
+    '''
+
+    def setUp(self):
+
+        ''' Create row in Dataset table
+        '''
+
+        super().setUp()
+        dataset_name = 'A sample Dataset'
+        description = 'Text description of new Dataset record'
+        self.dataset_id = views_documents.save_new_dataset(dataset_name, description)
+        self.dataset_obj = models.Dataset.query.get(self.dataset_id)
+
+    def tearDown(self):
+
+        ''' Delete row in Dataset table
+        '''
+
+        db.session.delete(self.dataset_obj) # this might be unnecessary. super() will drop the whole table
+        db.session.commit()
+        super().tearDown()
+
+class BaseDBSearchCreatedTestCase(BaseDatasetCreatedTestCase):
+
+    ''' Base test case with one DBSearch created in the database.
+
+        Also created:
+            - one parent Dataset
+    '''
+
+    def setUp(self):
+
+        ''' Create row in DBSearch table
+        '''
+
+        super().setUp()
+        sample_params = {   "ppp": 2, 
+                            "seqdbcoll": "SeqDB_072114", 
+                            "diff_search_Nterm": "", 
+                            "seqdb_name": "SeqDB_072114", 
+                            "use_job_spacing": False, 
+                            "job_spacing_init": 0, 
+                            "numthreads": 4, 
+                            "submit": False, 
+                            "split_n": 10, 
+                            "ppm_fragment_ion_tolerance": 50.0, 
+                            "search_name": "search_name", 
+                            "ppm_fragment_ion_tolerance_high": False, 
+                            "walltime": 8, "ppm_peptide_mass_tolerance": 30.0, 
+                            "mongodb_port": 27018, 
+                            "diff_search_options": "15.9949 M", 
+                            "is_sharded": True, 
+                            "server_preset": "garibaldi", 
+                            "dtaselect_classpath": "/gpfs/home/gstupp/DTASelect2", 
+                            "sfp": 0.01, 
+                            "massdbcoll": "MassDB_072114", 
+                            "protdb_name": "ProtDB_072114", 
+                            "mongodb_host": "wl-cmadmin", 
+                            "numcores": 4, 
+                            "diff_search_Cterm": "", 
+                            "use_seqdb": True, 
+                            "verbose": True, 
+                            "blazmass_jar": "/gpfs/home/gstupp/blazmass/blazmass.jar", 
+                            "use_protdb": False, 
+                            "job_spacing": 1, 
+                            "massdb_name": "MassDB_072114", 
+                            "temp": "dummy", 
+                            "protdbcoll": "ProtDB_072114"}
+        self.dbsearch_id = views_documents.save_new_dbsearch(self.dataset_id, params=sample_params)
+        self.dbsearch_obj = models.DBSearch.query.get(self.dbsearch_id)
+
+    def tearDown(self):
+
+        ''' Delete row in DBSearch table
+        '''
+
+        db.session.delete(self.dbsearch_obj) # this might be unnecessary. super() will drop the whole table
+        db.session.commit()
+        super().tearDown()
+
+class BaseMS1FileCreatedTestCase(BaseDatasetCreatedTestCase):
+
+    ''' Base test case with one MS1File created in the database.
+
+        Also created:
+            - one parent Dataset
+            - one parent MS1File
+
+        (MS1 file is saved to tmp file path)
     '''
 
     def setUp(self):
@@ -3693,11 +3784,15 @@ class BaseDatasetCreatedTestCase(BaseFileSavedTestCase):
         super().tearDown()
         # not implemented yet
 
-class BaseDBSearchCreatedTestCase(BaseDatasetCreatedTestCase):
+class BaseMS2FileCreatedTestCase(BaseDatasetCreatedTestCase):
 
-    ''' Base test case with one DBSearch created in database
-        and one parent Dataset also created in database
-        (and one file of each type saved to tmp file paths)
+    ''' Base test case with one MS2File created in the database.
+
+        Also created:
+            - one parent Dataset
+            - one parent MS2File
+
+        (MS2 file is saved to tmp file path)
     '''
 
     def setUp(self):
@@ -3705,5 +3800,93 @@ class BaseDBSearchCreatedTestCase(BaseDatasetCreatedTestCase):
         # not implemented yet
 
     def tearDown(self):
+        super().tearDown()
+        # not implemented yet
+
+class BaseSQTFileCreatedTestCase(BaseDBSearchCreatedTestCase):
+
+    ''' Base test case with one SQTFile created in the database.
+
+        Also created:
+            - one parent Dataset
+            - one parent DBSearch
+            - one parent MS2File
+
+        (MS2 file is saved to tmp file path)
+    '''
+
+    def setUp(self):
+        super().setUp()
+
+        ####### create MS2File too
+
+        # not implemented yet
+
+    def tearDown(self):
+
+        ####### remove MS2File too
+
+        super().tearDown()
+        # not implemented yet
+
+class BaseDTAFileCreatedTestCase(BaseDBSearchCreatedTestCase):
+
+    ''' Base test case with one SQTFile created in the database.
+
+        Also created:
+            - one parent Dataset
+            - one parent DBSearch
+            - one parent MS2File
+
+        (MS2 file is saved to tmp file path)
+    '''
+
+    def setUp(self):
+        super().setUp()
+
+        ####### create MS2File too
+
+        # not implemented yet
+
+    def tearDown(self):
+
+        ####### remove MS2File too
+
+        super().tearDown()
+        # not implemented yet
+
+class BaseCompleteDatasetTestCase(BaseDTAFileCreatedTestCase):
+
+    ''' Base test case with a 'complete' dataset stored in the database.
+
+        Created:
+            
+            - one parent Dataset record
+            
+            - one associated DBSearch record (associated with Dataset)
+            - one associated MS1File record (associated with Dataset)
+            - one associated MS2File record (associated with Dataset)
+
+            - one associated SQTFile record (associated with DBSearch)
+            - one associated DTAFile record (associated with DBSearch)
+
+        (all files are saved to tmp file path)
+    '''
+
+    def setUp(self):
+        super().setUp()
+
+        ####### create MS2File too
+        ####### create MS1File too
+        ####### create SQTFile too
+
+        # not implemented yet
+
+    def tearDown(self):
+
+        ####### remove MS2File too
+        ####### remove MS1File too
+        ####### remove SQTFile too
+
         super().tearDown()
         # not implemented yet
