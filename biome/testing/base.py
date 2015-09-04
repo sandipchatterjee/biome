@@ -3696,15 +3696,15 @@ class BaseDatasetCreatedTestCase(BaseFileSavedTestCase):
         dataset_name = 'A sample Dataset'
         description = 'Text description of new Dataset record'
         self.dataset_id = views_documents.save_new_dataset(dataset_name, description)
-        self.dataset_obj = models.Dataset.query.get(self.dataset_id)
+        # self.dataset_obj = models.Dataset.query.get(self.dataset_id) # not used
 
     def tearDown(self):
 
         ''' Delete row in Dataset table
         '''
 
-        db.session.delete(self.dataset_obj) # this might be unnecessary. super() will drop the whole table
-        db.session.commit()
+        # db.session.delete(self.dataset_obj) # this might be unnecessary. super() will drop the whole table
+        # db.session.commit()
         super().tearDown()
 
 class BaseDBSearchCreatedTestCase(BaseDatasetCreatedTestCase):
@@ -3754,15 +3754,15 @@ class BaseDBSearchCreatedTestCase(BaseDatasetCreatedTestCase):
                             "temp": "dummy", 
                             "protdbcoll": "ProtDB_072114"}
         self.dbsearch_id = views_documents.save_new_dbsearch(self.dataset_id, params=sample_params)
-        self.dbsearch_obj = models.DBSearch.query.get(self.dbsearch_id)
+        # self.dbsearch_obj = models.DBSearch.query.get(self.dbsearch_id) # not used
 
     def tearDown(self):
 
         ''' Delete row in DBSearch table
         '''
 
-        db.session.delete(self.dbsearch_obj) # this might be unnecessary. super() will drop the whole table
-        db.session.commit()
+        # db.session.delete(self.dbsearch_obj) # this might be unnecessary. super() will drop the whole table
+        # db.session.commit()
         super().tearDown()
 
 class BaseMS1FileCreatedTestCase(BaseDatasetCreatedTestCase):
@@ -3783,15 +3783,15 @@ class BaseMS1FileCreatedTestCase(BaseDatasetCreatedTestCase):
 
         super().setUp()
         self.ms1file_id = views_documents.save_new_ms1_record(self.dataset_id, self.ms1_file_path, original_filename=self.ms1_file_name)
-        self.ms1file_obj = models.MS1File.query.get(self.ms1file_id)
+        # self.ms1file_obj = models.MS1File.query.get(self.ms1file_id) # not used
 
     def tearDown(self):
 
         ''' Delete row in MS1File table
         '''
 
-        db.session.delete(self.ms1file_obj) # this might be unnecessary. super() will drop the whole table
-        db.session.commit()
+        # db.session.delete(self.ms1file_obj) # this might be unnecessary. super() will drop the whole table
+        # db.session.commit()
         super().tearDown()
 
 class BaseMS2FileCreatedTestCase(BaseDatasetCreatedTestCase):
@@ -3806,12 +3806,22 @@ class BaseMS2FileCreatedTestCase(BaseDatasetCreatedTestCase):
     '''
 
     def setUp(self):
+
+        ''' Create row in MS2File table
+        '''
+
         super().setUp()
-        # not implemented yet
+        self.ms2file_id = views_documents.save_new_ms2_record(self.dataset_id, self.ms2_file_path, original_filename=self.ms2_file_name)
+        # self.ms2file_obj = models.MS2File.query.get(self.ms2file_id) # not used
 
     def tearDown(self):
+
+        ''' Delete row in MS2File table
+        '''
+
+        # db.session.delete(self.ms2file_obj) # this might be unnecessary. super() will drop the whole table
+        # db.session.commit()
         super().tearDown()
-        # not implemented yet
 
 class BaseSQTFileCreatedTestCase(BaseDBSearchCreatedTestCase):
 
@@ -3828,16 +3838,23 @@ class BaseSQTFileCreatedTestCase(BaseDBSearchCreatedTestCase):
     def setUp(self):
         super().setUp()
 
-        ####### create MS2File too
+        # Create MS2File
+        self.ms2file_id = views_documents.save_new_ms2_record(self.dataset_id, self.ms2_file_path, original_filename=self.ms2_file_name)
+        # self.ms2file_obj = models.MS2File.query.get(self.ms2file_id) # not used
 
-        # not implemented yet
+        self.sqtfile_id = views_documents.save_new_sqt_record(self.dbsearch_id, self.sqt_file_path, original_filename=self.sqt_file_name)
+        # self.sqtfile_obj = models.SQTFile.query.get(self.sqtfile_id) # not used
 
     def tearDown(self):
 
-        ####### remove MS2File too
+        # Remove MS2File
+        # db.session.delete(self.ms2file_obj) # this might be unnecessary. super() will drop the whole table
+        # db.session.commit()
+
+        # db.session.delete(self.sqtfile_obj)
+        # db.session.commit()
 
         super().tearDown()
-        # not implemented yet
 
 class BaseDTAFileCreatedTestCase(BaseDBSearchCreatedTestCase):
 
@@ -3854,16 +3871,23 @@ class BaseDTAFileCreatedTestCase(BaseDBSearchCreatedTestCase):
     def setUp(self):
         super().setUp()
 
-        ####### create MS2File too
+        # Create MS2File
+        self.ms2file_id = views_documents.save_new_ms2_record(self.dataset_id, self.ms2_file_path, original_filename=self.ms2_file_name)
+        # self.ms2file_obj = models.MS2File.query.get(self.ms2file_id) # not used
 
-        # not implemented yet
+        self.dtafile_id = views_documents.save_new_dta_record(self.dbsearch_id, self.dta_file_path, original_filename=self.dta_file_name)
+        # self.dtafile_obj = models.DTAFile.query.get(self.dtafile_id) # not used
 
     def tearDown(self):
 
-        ####### remove MS2File too
+        # Remove MS2File
+        # db.session.delete(self.ms2file_obj) # this might be unnecessary. super() will drop the whole table
+        # db.session.commit()
+
+        # db.session.delete(self.dtafile_obj)
+        # db.session.commit()
 
         super().tearDown()
-        # not implemented yet
 
 class BaseCompleteDatasetTestCase(BaseDTAFileCreatedTestCase):
 
@@ -3886,17 +3910,15 @@ class BaseCompleteDatasetTestCase(BaseDTAFileCreatedTestCase):
     def setUp(self):
         super().setUp()
 
-        ####### create MS2File too
-        ####### create MS1File too
-        ####### create SQTFile too
+        # Create MS1File
+        self.ms1file_id = views_documents.save_new_ms1_record(self.dataset_id, self.ms1_file_path, original_filename=self.ms1_file_name)
 
-        # not implemented yet
+        # Create MS2File
+        self.ms2file_id = views_documents.save_new_ms2_record(self.dataset_id, self.ms2_file_path, original_filename=self.ms2_file_name)
+
+        # Create SQTFile
+        self.sqtfile_id = views_documents.save_new_sqt_record(self.dbsearch_id, self.sqt_file_path, original_filename=self.sqt_file_name)
 
     def tearDown(self):
 
-        ####### remove MS2File too
-        ####### remove MS1File too
-        ####### remove SQTFile too
-
         super().tearDown()
-        # not implemented yet
