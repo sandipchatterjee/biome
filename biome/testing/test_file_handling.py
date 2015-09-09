@@ -149,3 +149,11 @@ class FileValidationTests(base.BaseFileSavedTestCase):
                         )
 
         self.assertFalse(views_documents.check_file_types(file_list))
+
+    def test_sha224_MS1_file_hash(self):
+
+        ''' tests that get_hash() function returns the correct hash for an input filepath
+            (using MS1 filepath here)
+        '''
+
+        self.assertTrue(views_helpers.get_hash(self.ms1_file_path), '6106c18f239c260ac6501f97323e606b46ba0bad3bcbf0e22919a097')
