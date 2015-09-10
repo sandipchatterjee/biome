@@ -64,4 +64,8 @@ def set_config(app):
     config_name = os.getenv('BIOME_CONFIG', 'default')
     app.config.from_object(config[config_name])
 
-    app.logger.info('Using app configuration {} ({}) -- Set environment variable $BIOME_CONFIG to change'.format(config_name, config[config_name]))
+    logger_info = 'Using app configuration {} ({}) -- Set environment variable $BIOME_CONFIG to one of ({}) to change'
+    app.logger.info(logger_info.format( config_name, 
+                                        config[config_name], 
+                                        ','.join(config.keys())
+                                        ))
