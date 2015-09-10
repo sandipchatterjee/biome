@@ -3635,13 +3635,96 @@ class BaseFileInfoTestCase(BaseTestCase):
         self.sqt_file_string = textwrap.dedent(new_sample_sqt_file)
         self.sqt_file_name = '121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07_11.sqt'
 
-        ############# not implemented yet #############
         new_sample_dta_file = '''
+        DTASelect v2.1.3
+        /mongoa/DTASelect/proteomics/033115_ana/indexDB_search_noProtDB_10ppm_50ppmfrag
+        /mongoa/DTASelect/proteomics/033115_ana/indexDB_search_noProtDB_10ppm_50ppmfrag/filtered_DB_firstmatchonly_noProtDB.fasta
+        Blazmass ? in SQT format.
+         --quiet --sfp 0.01 -p 2 
+        true\tUse criteria
+        0.0\tMinimum peptide probability
+        0.18255861\tPeptide global false discovery rate
+        0.0\tMinimum protein probability
+        1.0\tProtein false discovery rate
+        1\tMinimum charge state
+        50\tMaximum charge state
+        -1.0\tMinimum ion proportion
+        10000\tMaximum Sp rank
+        -1.0\tMinimum Sp score
+        Include\tModified peptide inclusion
+        Any\tTryptic status requirement
+        false\tMultiple, ambiguous IDs allowed
+        Ignore\tPeptide validation handling
+        XCorr\tPurge duplicate peptides by protein
+        false\tInclude only loci with unique peptide
+        true\tRemove subset proteins
+        Ignore\tLocus validation handling
+        0\tMinimum modified peptides per locus
+        2\tMinimum peptides per locus
+
+        Locus\tSequence Count\tSpectrum Count\tSequence Coverage\tLength\tMolWt\tpI\tValidation Status\tNSAF\tEMPAI\tDescriptive Name
+        Unique\tFileName\tXCorr\tDeltCN\tConf%\tM+H+\tCalcM+H+\tTotalIntensity\tSpR\tSpScore\tIonProportion\tRedundancy\tSequence
+        61472780\t4\t38\t64.4%\t90\t9670\t6.8\tU\t0.052144937\t3.4055486\tno description
+        61506397\t4\t38\t39.5%\t147\t15998\t7.3\tU\t0.03192547\t1.4831331\tno description
+        \t03302015_H1_1108_Phe4_5step_2.2511.2511.2\t3.357831\t0.32338274\t99.8\t1314.6678\t1314.665\t88.0\t1\t14.182888\t36.1\t1\tK.VNVDEVGGEALGR.L
+        \t03302015_H1_1108_Phe4_5step_5.3385.3385.2\t3.39675\t0.085600734\t97.3\t1276.7344\t1274.726\t88.0\t1\t15.88343\t63.0\t3\tR.LLVVYPWTQR.F
+        \t03302015_H1_1108_Phe4_5step_2.5706.5706.2\t5.4833\t0.608207\t100.0\t2059.9546\t2058.948\t88.0\t1\t23.263453\t24.1\t18\tR.FFESFGDLSTPDAVMGNPK.V
+        \t03302015_H1_1108_Phe4_5step_4.3090.3090.2\t5.729938\t0.3908589\t100.0\t1671.8954\t1669.891\t88.0\t1\t15.797745\t44.4\t16\tK.VLGAFSDGLAHLDNLK.G
+        14410537\t2\t20\t45.2%\t93\t9719\t9.5\tU\t0.02655939\t1.831392\tno description
+        *\t03302015_H1_1108_Phe4_5step_2.4203.4203.2\t5.7757645\t0.4682151\t100.0\t1534.7905\t1532.78\t88.0\t1\t20.623697\t50.0\t9\tK.DQLIADLAESTGATK.V
+        *\t03302015_H1_1108_Phe4_5step_3.8266.8266.3\t5.7305775\t0.01732868\t94.2\t2781.502\t2778.488\t88.0\t1\t13.554005\t12.8\t11\tR.AVIEQLSQIVADQLENGGEITLPGVGK.L
+        61499971\t3\t17\t37.7%\t114\t13242\t6.1\tU\t0.01841684\t1.3823195\tno description
+        *\t03302015_H1_1108_Phe4_5step_5.4398.4398.2\t4.791998\t0.34396267\t100.0\t1808.9475\t1806.939\t88.0\t1\t15.363278\t42.9\t5\tR.NIETIINTFHQYSVK.L
+        *\t03302015_H1_1108_Phe4_5step_4.976.976.2\t2.963536\t0.15858334\t96.2\t1457.7281\t1455.723\t88.0\t1\t11.155871\t38.9\t3\tK.LGHPDTLNQGEFK.E
+        *\t03302015_H1_1108_Phe4_5step_2.3181.3181.2\t5.641586\t0.4022501\t100.0\t1744.8335\t1742.827\t88.0\t1\t16.638805\t47.6\t9\tK.VIEHIMEDLDTNADK.Q
+        61499498\t2\t123\t35.8%\t106\t11609\t5.9\tU\t0.14330795\t1.2803419\tno description
+        *\t03302015_H1_1108_Phe4_5step_3.4155.4155.2\t4.5501604\t0.4546563\t100.0\t1947.0311\t1946.027\t88.0\t1\t17.913397\t29.4\t120\t-.TVAAPSVFIFPPSDEQLK.S
+        *\t03302015_H1_1108_Phe4_5step_2.1987.1987.2\t5.8155723\t0.5627813\t100.0\t2137.9756\t2135.969\t88.0\t1\t20.960638\t21.1\t3\tK.VDNALQSGNSQESVTEQDSK.D
+        18932601\t4\t18\t35.0%\t103\t11653\t9.7\tU\t0.021582728\t1.2387211\tno description
+        \t03302015_H1_1108_Phe4_5step_2.2564.2564.2\t4.4416323\t0.21780014\t99.8\t1576.8367\t1574.827\t88.0\t1\t16.50997\t41.0\t4\tK.LIDQSTQEIVETAK.R
+        \t03302015_H1_1108_Phe4_5step_6.1319.1319.2\t4.556004\t0.38941926\t100.0\t1242.7095\t1240.705\t88.0\t1\t17.048292\t60.0\t12\tR.FTVLVSPHVNK.D
+        *\t03302015_H1_1108_Phe4_5step_5.2065.2065.2\t3.3773828\t0.11893678\t97.9\t1268.7574\t1268.757\t88.0\t1\t12.516625\t56.7\t1\tK.RVLDIVLPTDK.T
+        *\t03302015_H1_1108_Phe4_5step_2.3701.3701.2\t3.1714747\t0.0037888885\t82.4\t1112.6589\t1112.656\t88.0\t1\t14.137824\t66.7\t1\tR.VLDIVLPTDK.T
+        61500308\t6\t67\t34.4%\t270\t29489\t6.9\tU\t0.030646585\t1.2080047\tno description
+        \t03302015_H1_1108_Phe4_5step_5.4701.4701.3\t4.942485\t0.4230525\t100.0\t2618.2812\t2617.272\t88.0\t1\t15.022129\t13.5\t11\tR.VVHGEDAVPYSWPWQVSLQYEK.S
+        \t03302015_H1_1108_Phe4_5step_2.6653.6653.2\t5.1909814\t0.38857907\t100.0\t1825.9779\t1824.974\t88.0\t1\t19.899628\t37.8\t40\tR.DLTYQVVLGEYNLAVK.E
+        \t03302015_H1_1108_Phe4_5step_2.2658.2658.2\t4.0056586\t0.31528127\t99.8\t1420.6951\t1420.692\t88.0\t1\t14.461111\t38.9\t1\tR.SCVACGNDIALIK.L
+        *\t03302015_H1_1108_Phe4_5step_3.4075.4075.2\t4.22248\t0.4729811\t100.0\t2276.2397\t2275.229\t88.0\t1\t19.169048\t19.7\t1\tR.SAQLGDAVQLASLPPAGDILPNK.T
+        \t03302015_H1_1108_Phe4_5step_2.2198.2198.2\t3.126549\t0.085281014\t94.8\t1119.5955\t1117.589\t88.0\t1\t14.022473\t55.6\t12\tR.LYTNGPLPDK.L
+        *\t03302015_H1_1108_Phe4_5step_4.2853.2853.2\t2.3832653\t0.2019015\t96.4\t1163.564\t1163.563\t88.0\t1\t12.278924\t50.0\t2\tR.WNWWGSTVK.K
+        61497412\t4\t55\t32.9%\t167\t18147\t9.4\tU\t0.040674035\t1.133045\tno description
+        *\t03302015_H1_1108_Phe4_5step_6.1612.1612.2\t4.992156\t0.36010355\t100.0\t1712.8678\t1712.872\t88.0\t1\t18.045107\t42.2\t5\tR.FSHSGNQLDGPITALR.V
+        *\t03302015_H1_1108_Phe4_5step_3.4607.4607.2\t6.158627\t0.49371636\t100.0\t2268.1587\t2268.151\t88.0\t1\t18.606426\t30.0\t19\tR.NGDLEEIFLHPGESVIQVSGK.Y
+        *\t03302015_H1_1108_Phe4_5step_3.4590.4590.3\t5.085938\t0.35583383\t100.0\t2269.1582\t2268.151\t88.0\t1\t17.082916\t15.8\t21\tR.NGDLEEIFLHPGESVIQVSGK.Y
+        *\t03302015_H1_1108_Phe4_5step_6.2188.2188.2\t4.794393\t0.39214355\t100.0\t1925.993\t1924.988\t88.0\t1\t16.049192\t31.4\t10\tK.DSGTSFNAVPLHPNTVLR.F
+        61500574\t2\t17\t32.1%\t106\t11277\t7.2\tU\t0.01980679\t1.0941124\tno description
+        61500581\t2\t17\t32.1%\t106\t11237\t7.2\tU\t0.01980679\t1.0941124\tno description
+        61500580\t2\t17\t32.1%\t106\t11294\t7.2\tU\t0.01980679\t1.0941124\tno description
+        \t03302015_H1_1108_Phe4_5step_3.2439.2439.2\t3.9013333\t0.37767613\t99.9\t1987.0281\t1986.018\t88.0\t1\t17.189459\t27.8\t13\tK.AAPSVTLFPPSSEELQANK.A
+        \t03302015_H1_1108_Phe4_5step_3.811.811.2\t4.7583833\t0.519071\t100.0\t1711.7603\t1711.759\t88.0\t1\t17.388985\t31.0\t4\tR.SYSCQVTHEGSTVEK.T
+        22187885\t2\t4\t31.4%\t159\t16193\t9.8\tU\t0.0031069473\t1.0606298\tno description
+        72194197\t2\t4\t31.4%\t159\t16193\t9.8\tU\t0.0031069473\t1.0606298\tno description
+        67426757\t2\t4\t31.4%\t159\t16187\t9.9\tU\t0.0031069473\t1.0606298\tno description
+        67411095\t2\t4\t31.4%\t159\t16193\t9.8\tU\t0.0031069473\t1.0606298\tno description
+        60359180\t2\t4\t31.4%\t159\t16193\t9.8\tU\t0.0031069473\t1.0606298\tno description
+        58883726\t2\t4\t31.4%\t159\t16193\t9.8\tU\t0.0031069473\t1.0606298\tno description
+        \t03302015_H1_1108_Phe4_5step_5.4163.4163.3\t4.6505766\t0.27076006\t99.4\t2691.3403\t2690.332\t88.0\t1\t12.219237\t9.8\t2\tK.IQANNANTGTGIGAVAGGLTGAMFGGGNAK.Y
+        \t03302015_H1_1108_Phe4_5step_3.2509.2509.2\t5.2540936\t0.38290626\t100.0\t1861.9879\t1860.982\t88.0\t1\t17.164125\t33.3\t2\tK.YATAAGGAILGGIAGNQIDK.A
+        \tProteins\tPeptide IDs\tSpectra
+        Unfiltered\t311583\t60554\t1042696
+        Filtered\t141\t375\t2262
+        Forward matches\t140\t373\t2252
+        Redundant Forward matches\t7393\t373\t2252
+        Decoy matches\t1\t2\t10
+        Redundant Decoy matches\t3\t2\t10
+        Forward FDR\t0.71\t0.54\t0.44
+
+        Classification\tNonredundant Proteins\tRedundant Proteins
+        Unclassified\t0\t0
         '''.lstrip('\n')
 
         self.dta_file_string = textwrap.dedent(new_sample_dta_file)
         self.dta_file_name = 'DTASelect-filter.txt'
-        ############# not implemented yet #############
 
         def tearDown(self):
             super().tearDown()
