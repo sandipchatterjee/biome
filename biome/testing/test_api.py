@@ -42,6 +42,35 @@ class TestDatasetAPI(base.BaseDatasetCreatedTestCase):
 
         self.assertEqual(views_helpers.get_json_response('api.dataset_quickinfo', 2), '{}')
 
+class TestSQTFileAPI(base.BaseSQTFileCreatedTestCase):
+
+    ''' Methods to test 'SQTFile' JSON API view functions
+    '''
+
+    def test_sqtfile_found_gives_correct_json_output(self):
+
+        ''' Tests that a SQTFile exists (id=1),
+            returns a valid JSON object as a response,
+            and that this object contains the 'id' key 
+            and that response['id']==1
+        '''
+
+        try:
+            json_resp = json.loads(views_helpers.get_json_response('api.sqtfile_quickinfo', 1))
+        except (ValueError, TypeError):
+            self.fail('Invalid JSON')
+
+        self.assertIn('id', json_resp)
+        self.assertEqual(json_resp['id'], 1)
+
+    def test_sqtfile_not_found_gives_empty_json_obj(self):
+
+        ''' Tests that a SQTFile that doesn't exist (id=2)
+            returns an empty JSON object as a response
+        '''
+
+        self.assertEqual(views_helpers.get_json_response('api.sqtfile_quickinfo', 2), '{}')
+
 class TestDTAFileAPI(base.BaseDTAFileCreatedTestCase):
 
     ''' Methods to test 'DTAFile' JSON API view functions
