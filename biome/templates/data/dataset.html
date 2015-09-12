@@ -30,7 +30,6 @@
                 {% endfor %}
             </ul>
         </li>
-        {% if dataset_quickinfo_dict.dbsearches %}
         <li class="list-group-item"><h3><small>Database searches</small></h3>
             {% if current_dataset.ms2files.all() %}
             <div class="row">
@@ -39,6 +38,7 @@
                 </div>
             </div>
             {% endif %}
+        {% if dataset_quickinfo_dict.dbsearches %}
             {% for dbsearch in current_dataset.dbsearches.all() %}
             <ul class="list-group"><strong>{{ dbsearch.start_time.strftime('%m/%d/%Y, %I:%M %p') }}</strong>
                 <li class="list-group-item">
@@ -61,10 +61,10 @@
                 </li>
             </ul>
             {% endfor %}
-        </li>
         {% else %}
-        <li class="list-group-item"><h3><small><em>No existing database searches</em></small></h3></li>
+        <h3><small><em>No existing database searches</em></small></h3>
         {% endif %}
+        </li>
     </ul>
     <div class="panel-footer">
         <div class="row">
