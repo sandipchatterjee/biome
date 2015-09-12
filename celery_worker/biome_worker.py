@@ -67,14 +67,39 @@ def rsync_file(remote_host, remote_filepaths, new_local_directory=None):
     print(stdout)
     return new_local_directory
 
-def split_ms2_file(ms2_file_path, split_n):
+def split_ms2_file(ms2_file_path, params_dict):
 
-    with open(ms2_file_path) as f:
-        pass # logic for splitting MS2 file into split_n chunks
+    ''' Splits an MS2 file (ms2_file_path) into split_n subfiles 
+        by scan (lines that match '^S\t')
 
-    ms2_chunk_file_paths = [ms2_file_path.replace('.ms2', '_{}.ms2'.format(n)) for n in range(1,split_n+1)]
+        Returns a list of new subfile absolute paths
 
-    return ms2_chunk_file_paths
+        ** Requires GNU grep to be available as `grep` on worker **
+        ** Requires GNU parallel to be available as `parallel` on worker **
+    '''
+
+    split_n = params_dict['split_n']
+    temp_folder = params_dict['temp']
+
+    print('Splitting: ' + ms2_file_path)
+    dir_name = os.path.dirname(ms2_file_path)
+    base_name = os.path.basename(ms2_file_path)
+    temp_dir_path = dir_name+'/'+temp_folder
+    out_path = os.path.join(dir_name, temp_folder, base_name.replace('.ms2','_{#}.ms2'))
+    if not os.path.exists(temp_dir_path):
+        os.makedirs(temp_dir_path)
+
+    num_scans = int(subprocess.check_output(['grep', '-c', '^S', ms2_file_path]))
+    block_size = round(num_scans / split_n) + 1
+    
+    command = "cat {ms2_file_path} | parallel --pipe -N {block_size} --recstart 'S\\t' \"cat > {out_path} && echo {out_path}\"".format(
+    **{'ms2_file_path': ms2_file_path, 'block_size': block_size, 'out_path': out_path})
+    
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    if p.returncode != 0:
+         raise ValueError(stderr)
+    return stdout.decode('utf-8').splitlines()
 
 @app.task(name='biome_worker.split_ms2_and_make_jobs')
 def split_ms2_and_make_jobs(new_local_directory, params_dict):
@@ -89,7 +114,7 @@ def split_ms2_and_make_jobs(new_local_directory, params_dict):
     all_chunk_file_paths = []
 
     for file_path in MS2_files:
-        all_chunk_file_paths.extend(split_ms2_file(file_path, params_dict['split_n']))
+        all_chunk_file_paths.extend(split_ms2_file(file_path, params_dict))
 
     print(all_chunk_file_paths)
 
