@@ -11,6 +11,7 @@ import traceback
 import subprocess
 from celery import Celery, group
 from random import randint
+from textwrap import dedent
 from celery.exceptions import MaxRetriesExceededError
 
 try:
@@ -84,8 +85,8 @@ def split_ms2_file(ms2_file_path, params_dict):
     print('Splitting: ' + ms2_file_path)
     dir_name = os.path.dirname(ms2_file_path)
     base_name = os.path.basename(ms2_file_path)
-    temp_dir_path = dir_name+'/'+temp_folder
-    out_path = os.path.join(dir_name, temp_folder, base_name.replace('.ms2','_{#}.ms2'))
+    temp_dir_path = os.path.join(dir_name, temp_folder)
+    out_path = os.path.join(temp_dir_path, base_name.replace('.ms2','_{#}.ms2'))
     if not os.path.exists(temp_dir_path):
         os.makedirs(temp_dir_path)
 
@@ -101,14 +102,87 @@ def split_ms2_file(ms2_file_path, params_dict):
          raise ValueError(stderr)
     return stdout.decode('utf-8').splitlines()
 
+def make_job_file(ms2_chunk_file, params_dict):
+
+    ''' Makes a PBS job file for an input MS2_chunk_file
+        based on user-specified parameters in params_dict
+    '''
+
+    dir_name = os.path.dirname(ms2_chunk_file)
+    base_name = os.path.basename(ms2_chunk_file)
+    file_name = base_name.split('.')[0]
+    job_file_path = ms2_chunk_file.replace('.ms2','.job')
+    
+    job_boilerplate = '\n'.join((   '#!/bin/bash',
+                                    '#PBS -l nodes=1:ppn={}'.format(params_dict['numcores']),
+                                    '#PBS -l cput={}:00:00'.format(params_dict['cputime']),
+                                    '#PBS -l walltime={}:00:00'.format(params_dict['walltime']),
+                                    '#PBS -j oe',
+                                    '#PBS -l mem={}gb'.format(params_dict['memgb']),
+                                    '#PBS -N "BM_{}"'.format(file_name),
+                                    '#PBS -o {}'.format(ms2_chunk_file.replace('.ms2','.$PBS_JOBID')),
+                                    '#PBS -m n', # suppress job-related status emails from PBS admin
+                                    ))
+
+    customization_dict = {  'num_threads': params_dict['numthreads'], 
+                            'blazmass_jar': params_dict['blazmass_jar'], 
+                            'ms2_file': ms2_chunk_file, 
+                            'base_name': base_name, 
+                            'job_file': job_file_path, 
+                            # 'ex_path': params_dict['ex_path'],
+                            'dir_name': dir_name, 
+                            }
+                    
+    base_job_file_not_sharded = dedent("""
+                    echo "################################################################################"
+                    echo "Processing MS2 file: {ms2_file}"
+                    echo "PBS job script file: {job_file}"
+                    echo "Running on node: `hostname`"
+                    echo "################################################################################"
+                    
+                    module load java/1.7.0_21
+                    cd {dir_name}
+                    echo $PBS_JOBID >> ../job.ids
+                    java -jar {blazmass_jar} . {base_name} blazmass.params {num_threads}
+                    STATUS=$?
+                    if [ $STATUS -ne 0 ]; then
+                      echo "Blazmass failed"; exit $STATUS
+                    else
+                      echo "Finished Successfully!"
+                    fi
+
+                    """).format(**customization_dict)
+    
+    with open(job_file_path, 'w') as f:
+        print('Writing job file: ' + job_file_path)
+        f.write(job_boilerplate + '\n' + base_job_file_not_sharded)
+        
+    return job_file_path
+
+def make_blazmass_params(temp_dir, params_dict):
+
+    ''' Make custom blazmass.params file from template using params_dict '''
+
+    bm_params_template = os.path.join(ex_path, 'blazmass.params.template')
+    bm_params_out = os.path.join(temp_dir, 'blazmass.params')
+    bm_params_text = open(bm_params_template).read().format(**params_dict)
+    with open(bm_params_out, 'w') as f:
+        f.write(bm_params_text)
+    return bm_params_out
+
 @app.task(name='biome_worker.split_ms2_and_make_jobs')
 def split_ms2_and_make_jobs(new_local_directory, params_dict):
 
-    ''' splits all ms2 files in new_local_directory
+    ''' Splits all ms2 files in new_local_directory
         and creates matched job files for each MS2 chunk
+
+        Returns a list of all PBS job file absolute paths
+        (one job file per MS2 chunk)
     '''
 
     MS2_files = glob.glob(new_local_directory+'/*.ms2')
+    temp_dir_path = os.path.join(new_local_directory, params_dict['temp'])
+
     print('Splitting MS2 files: {}'.format(', '.join(MS2_files)))
 
     all_chunk_file_paths = []
@@ -116,13 +190,16 @@ def split_ms2_and_make_jobs(new_local_directory, params_dict):
     for file_path in MS2_files:
         all_chunk_file_paths.extend(split_ms2_file(file_path, params_dict))
 
-    print(all_chunk_file_paths)
+    job_file_paths = [make_job_file(ms2_chunk_file, params_dict) for ms2_chunk_file in all_chunk_file_paths]
+    blazmass_params_path = make_blazmass_params(temp_dir_path, params_dict)
 
-    return all_chunk_file_paths
+    print(job_file_paths)
+
+    return job_file_paths
 
 @app.task(name='biome_worker.launch_submission_tasks')
-def launch_submission_tasks(ms2_file_chunks):
-    submission_tasks = group(submit_and_check_job.s(ms2_chunk).set(queue='sandip') for ms2_chunk in ms2_file_chunks)
+def launch_submission_tasks(job_file_paths):
+    submission_tasks = group(submit_and_check_job.s(job_file).set(queue='sandip') for job_file in job_file_paths)
     submission_tasks.apply_async()
     return submission_tasks
 
