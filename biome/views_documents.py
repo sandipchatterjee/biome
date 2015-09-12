@@ -566,6 +566,11 @@ def new_search(dataset_pk):
     if params_form.validate_on_submit():
 
         params = json.loads(json.dumps(dict(params_form.data.items()), default=lambda x: float(x) if isinstance(x, decimal.Decimal) else x))
+
+        if params['server_preset'] == 'ims':
+            params['mongodb_uri'] = 'mongodb://imsb0501:27018,imsb0515:27018,imsb0601:27018,imsb0615:27018'
+
+        # Save new DBSearch record in database
         new_dbsearch_id = save_new_dbsearch(dataset_pk, params=params)
 
         params['dbsearch_id'] = new_dbsearch_id

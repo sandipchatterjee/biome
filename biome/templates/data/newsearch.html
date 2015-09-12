@@ -33,22 +33,6 @@
             </div>
             <div class="row">
                 <div class="col-md-6">
-                {{ params_form.mongodb_host.label(class="form-label-small") }} 
-                {{ params_form.mongodb_host(class="form-control") }}
-                </div>
-                <div class="col-md-6">
-                {{ params_form.mongodb_port.label(class="form-label-small") }}
-                {{ params_form.mongodb_port(class="form-control") }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                {{ params_form.is_sharded() }}
-                {{ params_form.is_sharded.label(class="form-label-small") }} 
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
                 {{ params_form.massdb_name.label(class="form-label-small") }} 
                 {{ params_form.massdb_name(class="form-control") }}
                 </div>
@@ -163,6 +147,18 @@
             </div>
 
             <div style="display:none;" id="advancedParams">
+                <div class="row">
+                    <div class="col-md-12">
+                    {{ params_form.mongodb_uri.label(class="form-label-small") }} 
+                    {{ params_form.mongodb_uri(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                    {{ params_form.is_sharded() }}
+                    {{ params_form.is_sharded.label(class="form-label-small") }} 
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-md-12">
                     {{ params_form.verbose() }}
