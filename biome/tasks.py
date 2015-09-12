@@ -21,11 +21,42 @@ def celery_background_task(arg1, arg2):
 
     return arg1+arg2
 
-@celery.task(name='submit_blazmass_worker.echo')
-def echo():
+@celery.task(name='biome_worker.echo', queue='sandip')
+def echo(echo_string="hello"):
 
     ''' For testing out remote Celery worker 
     '''
 
     pass
 
+@celery.task(name='biome_worker.add', queue='sandip')
+def add(x, y):
+
+    ''' For testing out remote Celery worker 
+    '''
+
+    pass
+
+@celery.task(name='biome_worker.tsum', queue='sandip')
+def tsum(x, y):
+
+    ''' For testing out remote Celery worker 
+    '''
+
+    pass
+
+@celery.task(name='biome_worker.rsync_file', queue='sandip')
+def rsync_file(remote_host, remote_filepaths, new_local_directory=None):
+    pass
+
+@celery.task(name='biome_worker.split_ms2_and_make_jobs', queue='sandip')
+def split_ms2_and_make_jobs(new_local_directory, params_dict):
+    pass
+
+@celery.task(bind=True, name='biome_worker.submit_and_check_job', max_retries = 20)
+def submit_and_check_job(self, args):
+    pass
+
+@celery.task(name='biome_worker.launch_submission_tasks')
+def launch_submission_tasks(ms2_file_chunks):
+    pass

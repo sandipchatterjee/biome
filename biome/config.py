@@ -13,6 +13,13 @@ class BaseConfig(object):
 
     CELERY_BROKER_URL = 'redis://localhost:6379/0'
     CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+    CELERY_ROUTES = {   'biome_worker.echo' : {'queue': 'sandip'},
+                        'biome_worker.sum' : {'queue': 'sandip'},
+                        'biome_worker.tsum' : {'queue': 'sandip'},
+                        }
+
+    CELERY_TASK_SERIALIZER = 'pickle'
+    CELERY_RESULT_SERIALIZER = 'pickle'
 
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://'
 

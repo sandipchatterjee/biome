@@ -23,6 +23,7 @@ from biome import ( api,
                     views_helpers, 
                     )
 from tempfile import mkstemp
+from celery import group, chain, chord
 import re
 import json
 import shutil
@@ -466,10 +467,84 @@ def delete_sqtfile(sqtfile_pk):
 @data.route('/launchtask')
 def launch_task():
 
-    ''' Sample view that launches a celery async task
+    ''' Sample view that launches a celery async task. Only used for testing.
     '''
 
-    task = tasks.echo.apply_async(args=['hello world'], queue='sandip')
+    # WORKING!!
+    # callback = tasks.tsum.s().set(queue='sandip')
+    # header = [tasks.add.s(i,i) for i in range(8)]
+    # result = chord(header)(callback)
+
+    # WORKING!!
+    # callback = tasks.tsum.si([-1,-2]).set(queue='sandip') # '.si' method ignores all previous group callback methods
+    # header = [tasks.add.s(i,i).set(queue='sandip') for i in range(800)]
+    # result = chord(header)(callback)
+
+    # task = tasks.echo.apply_async(args=['hello world'], queue='sandip')
+    # job = chord([   tasks.echo.s('hello'), 
+    #                 tasks.echo.s('hi'), 
+    #                 tasks.echo.s({'dict':'contentss', 'key': 2}), 
+    #                 tasks.echo.s('helloagain')], tasks.echo.si('lastone'))
+
+    # WORKING!!
+    # callback = tasks.echo.si('all done!').set(queue='sandip') # '.si' method ignores all previous group callback methods
+    # task_group = [task_obj.set(queue='sandip') for task_obj in (tasks.echo.s('hello'), 
+    #                                                             tasks.echo.s('hi'), 
+    #                                                             tasks.echo.s({'dict':'contentss', 'key': 2}), 
+    #                                                             tasks.echo.s('helloagain')
+    #                                                             )]
+    # result = chord(task_group)(callback)
+
+    # WORKING!!
+    # callback = tasks.echo.si('all done!').set(queue='sandip') # '.si' method ignores all previous group callback methods
+    # task_group = [task_obj.set(queue='sandip') for task_obj in (tasks.echo.s('hello'), 
+    #                                                             tasks.echo.s('hi'), 
+    #                                                             tasks.echo.s({'dict':'contentss', 'key': 2}), 
+    #                                                             tasks.echo.s('helloagain')
+    #                                                             )]
+    # result = group(task_group) | callback
+    # result.apply_async()
+
+    # WORKING!!
+    # callback = tasks.echo.si('all done!').set(queue='sandip') # '.si' method ignores all previous group callback methods
+    # task_group = [task_obj.set(queue='sandip') for task_obj in (tasks.echo.s('hello'), 
+    #                                                             tasks.echo.s('hi'), 
+    #                                                             tasks.echo.s({'dict':'contentss', 'key': 2}), 
+    #                                                             tasks.echo.s('helloagain')
+    #                                                             )]
+    # task_group2 = [task_obj.set(queue='sandip') for task_obj in (tasks.echo.si('hello'), 
+    #                                                             tasks.echo.si('hi'), 
+    #                                                             tasks.echo.si({'dict':'contentss', 'key': 2}), 
+    #                                                             tasks.echo.si('helloagain')
+    #                                                             )]*4
+    # result = group(task_group) | callback
+    # result.apply_async() # this may still be running when second set is started
+    # result2 = group(task_group2) | callback
+    # result2.apply_async()
+
+    # this will be hardcoded for our purposes -- or, in production, using socket.gethostname()
+    remote_host = 'admin@wolanlab'
+
+    # this will be retrieved from the MS2File db table
+    remote_filepaths = ['/home/admin/test_files/121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07_11.ms2', 
+                        '/home/admin/test_files/121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07_11_duplicate.ms2']
+
+    # hardcoded for now, but params_dict will be retrieved from DBSearch.params field
+    params_dict = {'split_n': 5}
+
+    # last_group_of_tasks = group([tasks.submit_and_check_job.si('useless_arg').set(queue='sandip')]*25)
+    # last_group_of_tasks = group([tasks.submit_and_check_job.s().set(queue='sandip')]*25)
+
+    # chained_tasks = rsync_task | split_and_create_jobs_task | last_group_of_tasks
+
+    rsync_task = tasks.rsync_file.s(remote_host, remote_filepaths, new_local_directory=None).set(queue='sandip')
+    split_and_create_jobs_task = tasks.split_ms2_and_make_jobs.s(params_dict).set(queue='sandip')
+
+    launch_submission_tasks = tasks.launch_submission_tasks.s().set(queue='sandip')
+    chained_tasks = rsync_task | split_and_create_jobs_task | launch_submission_tasks
+    task = chained_tasks.apply_async()
+
+    print(task.children) # this GroupResult ID won't be available until a few moments after launching
 
     app.logger.info('Launched Celery task {}'.format(task))
 
@@ -494,7 +569,26 @@ def new_search(dataset_pk):
         new_dbsearch_id = save_new_dbsearch(dataset_pk, params=params)
 
         params['dbsearch_id'] = new_dbsearch_id
-        import time; time.sleep(5);
+
+        remote_host = 'admin@wolanlab'
+        remote_filepaths = [ms2file.file_path for ms2file in ms2_files]
+
+
+        # hard-coded for now... remove later!
+        remote_filepaths = ['/home/admin/test_files/121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07_11.ms2', 
+                            '/home/admin/test_files/121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07_11_duplicate.ms2']
+        ###### REMOVE ^^
+
+        rsync_task = tasks.rsync_file.s(remote_host, remote_filepaths, new_local_directory=None).set(queue='sandip')
+        split_and_create_jobs_task = tasks.split_ms2_and_make_jobs.s(params).set(queue='sandip')
+
+        launch_submission_tasks = tasks.launch_submission_tasks.s().set(queue='sandip')
+        chained_tasks = rsync_task | split_and_create_jobs_task | launch_submission_tasks
+        task = chained_tasks.apply_async()
+
+        print(task.children) # this GroupResult ID won't be available until a few moments after launching
+
+        app.logger.info('Launched Celery task {}'.format(task))
 
         return jsonify(params)
 
