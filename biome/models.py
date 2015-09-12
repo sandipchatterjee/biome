@@ -42,6 +42,10 @@ class DBSearch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     params = db.Column(postgresql.JSON)
     start_time = db.Column(db.DateTime)
+
+    celery_id = db.Column(db.String(36)) # Celery Task ID (hash)
+    status = db.Column(db.String(25))
+
     deleted = db.Column(db.Boolean)
 
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'))

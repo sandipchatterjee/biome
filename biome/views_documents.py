@@ -622,7 +622,7 @@ def new_search(dataset_pk):
         remote_filepaths = [ms2file.file_path for ms2file in ms2_files]
 
 
-        # hard-coded for now... remove later!
+        # hard-coded for now... remove later! (once on production server)
         remote_filepaths = ['/home/admin/test_files/121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07_11.ms2', 
                             '/home/admin/test_files/121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07_11_duplicate.ms2']
         ###### REMOVE ^^
@@ -633,6 +633,12 @@ def new_search(dataset_pk):
         launch_submission_tasks = tasks.launch_submission_tasks.s().set(queue='sandip')
         chained_tasks = rsync_task | split_and_create_jobs_task | launch_submission_tasks
         task = chained_tasks.apply_async()
+
+        # save task ID to local database
+        current_dbsearch = models.DBSearch.query.get(new_dbsearch_id)
+        current_dbsearch.celery_id = str(task)
+        current_dbsearch.status = 'submitted'
+        db.session.commit()
 
         print(task.children) # this GroupResult ID won't be available until a few moments after launching
 
