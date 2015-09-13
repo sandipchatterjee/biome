@@ -305,7 +305,8 @@ $(function() {
             console.log(textStatus);
             console.log(jqXHR);
             console.log('Success!');
-            $('#submitSearchDiv').hide().html('<a href="" class="btn btn-success btn-block">View Status</a>').fadeIn('slow');
+            var dbsearchURL = "{{ url_for('search.view_dbsearch', dbsearch_pk=-1) }}".replace('-1', data['dbsearch_id']);
+            $('#submitSearchDiv').hide().html('<a href="{0}" class="btn btn-success btn-block">View Status</a>'.format(dbsearchURL)).fadeIn('slow');
 
         }).fail(function(data){
             $("#submitSearchDiv").html('<h2>Error starting search</h2>');

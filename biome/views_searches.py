@@ -14,16 +14,19 @@ from flask import ( abort,
 from werkzeug import secure_filename
 from biome import ( api, 
                     app, 
+                    celery, 
                     data, 
                     db, 
                     decorators, 
                     forms, 
                     models, 
+                    search, 
                     tasks, 
                     views_helpers, 
                     )
 from tempfile import mkstemp
 from celery import group, chain, chord
+# from celery.result import AsyncResult
 import re
 import json
 import shutil
@@ -86,4 +89,23 @@ def new_search(dataset_pk):
                             params_form=params_form, 
                             current_dataset=current_dataset, 
                             ms2_files=ms2_files, 
+                            )
+
+@search.route('/<dbsearch_pk>/', methods=('GET', 'POST'))
+def view_dbsearch(dbsearch_pk):
+
+    ''' View DBSearch
+    '''
+
+    current_dbsearch = models.DBSearch.query.get_or_404(dbsearch_pk)
+    parent_dataset = models.Dataset.query.get_or_404(current_dbsearch.dataset_id)
+    if current_dbsearch.celery_id:
+        celery_task_obj = celery.AsyncResult(current_dbsearch.celery_id)
+    else:
+        celery_task_obj = None
+
+    return render_template( 'search/dbsearch.html', 
+                            current_dbsearch=current_dbsearch, 
+                            parent_dataset=parent_dataset, 
+                            celery_task_obj=celery_task_obj, 
                             )

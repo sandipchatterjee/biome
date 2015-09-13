@@ -318,11 +318,6 @@ def delete_dtafile(dtafile_pk):
 
     return redirect(url_for('data.dtafile_index')) # pass a message here confirming delete
 
-@data.route('/search/<dbsearch_pk>', methods=('GET', 'POST'))
-def dbsearch_info(dbsearch_pk):
-
-    return ''
-
 @data.route('/ms1/<ms1file_pk>', methods=('GET', 'POST'))
 def ms1file_info(ms1file_pk):
 

@@ -13,6 +13,7 @@ from biome.config import set_config
 
 api = Blueprint('api', __name__)
 data = Blueprint('data', __name__)
+search = Blueprint('search', __name__)
 
 app = Flask(__name__, static_folder='static')
 set_config(app)
@@ -31,6 +32,4 @@ def not_found(error):
 
 app.register_blueprint(api, url_prefix='/api')
 app.register_blueprint(data, url_prefix='/data')
-
-
-
+app.register_blueprint(search, url_prefix='/search')

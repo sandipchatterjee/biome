@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% set active_page = "search" %}
+
+{% block title %} - View Search Status{% endblock %}
+
+{% block content %}
+<h1>Database Search Information</h1>
+
+<p class="lead"> {% block subtitle_additions %}{% endblock %}</p>
+
+<div class="panel panel-default">
+    <div class="panel-heading"><h4>Searched data from dataset <a href="{{ url_for('data.dataset_info', dataset_pk=parent_dataset.id) }}">{{ parent_dataset.name }}</a></h4></div>
+    <div class="panel-body">
+        <h3><small>Dataset Description</small></h3>
+        <p><em>{{ parent_dataset.description }}</em></p>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item"><h3><small>Database Search</small></h3>
+            <ul class="list-group">
+                {% if celery_task_obj %}
+                <li class="list-group-item">
+                    <h3>
+                        <small>
+                            Search Status: {% if celery_task_obj.successful() %}<strong>successful</strong>{% endif %}
+                        </small>
+                    </h3>
+                    <ul class="list-group">
+                        <li class="list-group-item"><em>State: </em>{{ celery_task_obj.state }}</li>
+                        <li class="list-group-item"><em>Child tasks: </em>{{ celery_task_obj.children }}</li>
+                        <li class="list-group-item"><em>Tasks ready? </em>{{ celery_task_obj.ready() }}</li>
+                    </ul>
+                </li>
+                {% endif %}
+
+                {% if dta_files %}
+                <li class="list-group-item"><h3><small>Associated DTASelect-filter files</small></h3>
+                    <ul class="list-group">
+                        {% for dta_file in dta_files %}
+                        <li class="list-group-item">
+                            <a href="{{ url_for('data.dtafile_info', dtafile_pk=dta_file.id) }}">{{ dta_file.original_filename }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% else %}
+                <li class="list-group-item"><h3><small><em>No Associated DTASelect-filter files</em></small></h3></li>
+                {% endif %}
+            </ul>
+        </li>
+
+    </ul>
+
+    <div class="panel-footer">
+<!--         <div class="row">
+            filler
+        </div> -->
+    </div>
+</div>
+
+<div id="bottomBreadcrumb">
+    <ol class="breadcrumb">
+      <li><a href="{{ url_for('index') }}">Home</a></li>
+      <li><a href="{{ url_for('data.document_index') }}">View Data</a></li>
+      <li><a href="{{ url_for('data.dataset_info', dataset_pk=parent_dataset.id) }}">Dataset: {{ parent_dataset.name }} </a></li>
+      <li class="active">Database Search</li>
+    </ol>
+</div>
+
+{% endblock %}
