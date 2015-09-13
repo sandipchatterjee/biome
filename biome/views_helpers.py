@@ -77,3 +77,85 @@ def count_scans_in_file(pk, filetype):
     app.logger.info('Recorded {} scans in new MS2File ID {}'.format(scan_count, pk))
 
     return
+
+def save_new_dataset(dataset_name, description):
+
+    ''' Creates a new row in the Dataset db table
+    '''
+
+    new_dataset = models.Dataset(dataset_name, description)
+    db.session.add(new_dataset)
+    db.session.commit()
+
+    app.logger.info('Saved new dataset {} to database'.format(dataset_name))
+
+    return new_dataset.id
+
+def save_new_dbsearch(dataset_id, params=None):
+
+    ''' Creates a new DBSearch row
+    '''
+
+    new_dbsearch = models.DBSearch(dataset_id, params)
+    db.session.add(new_dbsearch)
+    db.session.commit()
+
+    app.logger.info('Saved new DBSearch {} for Dataset ID {} to database'.format(new_dbsearch.id, dataset_id))
+
+    return new_dbsearch.id
+
+def save_new_ms1_record(dataset_id, file_path, original_filename=None):
+
+    ''' Creates a new row in the ms1_file db table
+    '''
+
+    new_ms1_file = models.MS1File(file_path, dataset_id, original_filename=original_filename)
+    db.session.add(new_ms1_file)
+    db.session.commit()
+
+    app.logger.info('Saved new MS1 file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
+
+    return new_ms1_file.id
+
+def save_new_ms2_record(dataset_id, file_path, original_filename=None):
+
+    ''' Creates a new row in the ms2_file db table
+    '''
+
+    new_ms2_file = models.MS2File(file_path, dataset_id, original_filename=original_filename)
+    db.session.add(new_ms2_file)
+    db.session.commit()
+
+    count_scans_in_file(new_ms2_file.id, 'ms2')
+
+    app.logger.info('Saved new MS2 file {} (Dataset ID {}) to database'.format(file_path, dataset_id))
+
+    return new_ms2_file.id
+
+def save_new_sqt_record(dbsearch_id, file_path, original_filename=None):
+
+    ''' Creates a new row in the sqt_file db table
+    '''
+
+    new_sqt_file = models.SQTFile(file_path, dbsearch_id, original_filename=original_filename)
+    db.session.add(new_sqt_file)
+    db.session.commit()
+
+    app.logger.info('Saved new SQT file {} (Dataset ID {}) to database'.format(file_path, dbsearch_id))
+
+    return new_sqt_file.id
+
+def save_new_dta_record(dbsearch_id, file_path, original_filename=None):
+
+    ''' Creates a new row in the dta_file db table
+    '''
+
+    # parse DTA file for 'flags' field... (something like '-p 2 -m 0 --trypstat')
+
+    new_dta_file = models.DTAFile(file_path, dbsearch_id, original_filename=original_filename)
+    db.session.add(new_dta_file)
+    db.session.commit()
+
+    app.logger.info('Saved new DTA file {} (Dataset ID {}) to database'.format(file_path, dbsearch_id))
+
+    return new_dta_file.id

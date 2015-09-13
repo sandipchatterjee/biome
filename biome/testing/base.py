@@ -3778,7 +3778,7 @@ class BaseDatasetCreatedTestCase(BaseFileSavedTestCase):
         super().setUp()
         dataset_name = 'A sample Dataset'
         description = 'Text description of new Dataset record'
-        self.dataset_id = views_documents.save_new_dataset(dataset_name, description)
+        self.dataset_id = views_helpers.save_new_dataset(dataset_name, description)
         # self.dataset_obj = models.Dataset.query.get(self.dataset_id) # not used
 
     def tearDown(self):
@@ -3836,7 +3836,7 @@ class BaseDBSearchCreatedTestCase(BaseDatasetCreatedTestCase):
                             "massdb_name": "MassDB_072114", 
                             "temp": "dummy", 
                             "protdbcoll": "ProtDB_072114"}
-        self.dbsearch_id = views_documents.save_new_dbsearch(self.dataset_id, params=sample_params)
+        self.dbsearch_id = views_helpers.save_new_dbsearch(self.dataset_id, params=sample_params)
         # self.dbsearch_obj = models.DBSearch.query.get(self.dbsearch_id) # not used
 
     def tearDown(self):
@@ -3865,7 +3865,7 @@ class BaseMS1FileCreatedTestCase(BaseDatasetCreatedTestCase):
         '''
 
         super().setUp()
-        self.ms1file_id = views_documents.save_new_ms1_record(self.dataset_id, self.ms1_file_path, original_filename=self.ms1_file_name)
+        self.ms1file_id = views_helpers.save_new_ms1_record(self.dataset_id, self.ms1_file_path, original_filename=self.ms1_file_name)
         # self.ms1file_obj = models.MS1File.query.get(self.ms1file_id) # not used
 
     def tearDown(self):
@@ -3894,7 +3894,7 @@ class BaseMS2FileCreatedTestCase(BaseDatasetCreatedTestCase):
         '''
 
         super().setUp()
-        self.ms2file_id = views_documents.save_new_ms2_record(self.dataset_id, self.ms2_file_path, original_filename=self.ms2_file_name)
+        self.ms2file_id = views_helpers.save_new_ms2_record(self.dataset_id, self.ms2_file_path, original_filename=self.ms2_file_name)
         # self.ms2file_obj = models.MS2File.query.get(self.ms2file_id) # not used
 
     def tearDown(self):
@@ -3922,10 +3922,10 @@ class BaseSQTFileCreatedTestCase(BaseDBSearchCreatedTestCase):
         super().setUp()
 
         # Create MS2File
-        self.ms2file_id = views_documents.save_new_ms2_record(self.dataset_id, self.ms2_file_path, original_filename=self.ms2_file_name)
+        self.ms2file_id = views_helpers.save_new_ms2_record(self.dataset_id, self.ms2_file_path, original_filename=self.ms2_file_name)
         # self.ms2file_obj = models.MS2File.query.get(self.ms2file_id) # not used
 
-        self.sqtfile_id = views_documents.save_new_sqt_record(self.dbsearch_id, self.sqt_file_path, original_filename=self.sqt_file_name)
+        self.sqtfile_id = views_helpers.save_new_sqt_record(self.dbsearch_id, self.sqt_file_path, original_filename=self.sqt_file_name)
         # self.sqtfile_obj = models.SQTFile.query.get(self.sqtfile_id) # not used
 
     def tearDown(self):
@@ -3955,10 +3955,10 @@ class BaseDTAFileCreatedTestCase(BaseDBSearchCreatedTestCase):
         super().setUp()
 
         # Create MS2File
-        self.ms2file_id = views_documents.save_new_ms2_record(self.dataset_id, self.ms2_file_path, original_filename=self.ms2_file_name)
+        self.ms2file_id = views_helpers.save_new_ms2_record(self.dataset_id, self.ms2_file_path, original_filename=self.ms2_file_name)
         # self.ms2file_obj = models.MS2File.query.get(self.ms2file_id) # not used
 
-        self.dtafile_id = views_documents.save_new_dta_record(self.dbsearch_id, self.dta_file_path, original_filename=self.dta_file_name)
+        self.dtafile_id = views_helpers.save_new_dta_record(self.dbsearch_id, self.dta_file_path, original_filename=self.dta_file_name)
         # self.dtafile_obj = models.DTAFile.query.get(self.dtafile_id) # not used
 
     def tearDown(self):
@@ -3994,13 +3994,13 @@ class BaseCompleteDatasetTestCase(BaseDTAFileCreatedTestCase):
         super().setUp()
 
         # Create MS1File
-        self.ms1file_id = views_documents.save_new_ms1_record(self.dataset_id, self.ms1_file_path, original_filename=self.ms1_file_name)
+        self.ms1file_id = views_helpers.save_new_ms1_record(self.dataset_id, self.ms1_file_path, original_filename=self.ms1_file_name)
 
         # Create MS2File
-        self.ms2file_id = views_documents.save_new_ms2_record(self.dataset_id, self.ms2_file_path, original_filename=self.ms2_file_name)
+        self.ms2file_id = views_helpers.save_new_ms2_record(self.dataset_id, self.ms2_file_path, original_filename=self.ms2_file_name)
 
         # Create SQTFile
-        self.sqtfile_id = views_documents.save_new_sqt_record(self.dbsearch_id, self.sqt_file_path, original_filename=self.sqt_file_name)
+        self.sqtfile_id = views_helpers.save_new_sqt_record(self.dbsearch_id, self.sqt_file_path, original_filename=self.sqt_file_name)
 
     def tearDown(self):
 
