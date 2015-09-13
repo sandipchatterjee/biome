@@ -91,6 +91,21 @@ def new_search(dataset_pk):
                             ms2_files=ms2_files, 
                             )
 
+@search.route('/')
+def view_dbsearches():
+
+    ''' View all DBSearch records
+    '''
+
+    # in the future, can limit this to only searches in progress
+    all_dbsearches = models.DBSearch.query.order_by(models.DBSearch.start_time.desc()).all()
+    parent_datasets = [models.Dataset.query.get(dbsearch.dataset_id) for dbsearch in all_dbsearches]
+
+    return render_template( 'search/dbsearch_index.html', 
+                            dbsearches_datasets=zip(all_dbsearches, parent_datasets), 
+                            )
+
+
 @search.route('/<dbsearch_pk>/', methods=('GET', 'POST'))
 def view_dbsearch(dbsearch_pk):
 

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% set active_page = "search" %}
+
+{% block title %} - Database Searches{% endblock %}
+
+{% block content %}
+<h1>View Database Searches{% block title_additions %}{% endblock %}</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th class="text-center">Dataset</th>
+            <th class="text-center">Search Start Time</th>
+            <th class="text-center">Celery Task ID</th>
+            <th class="text-center">Status</th>
+            <th class="text-center"></th> <!-- view button -->
+
+        </tr>
+    </thead>
+    {% for dbsearch, dataset in dbsearches_datasets %}
+    <tr>
+        <td class="text-center">{{ dataset.name }}</td>
+        <td class="text-center">{{ dbsearch.start_time.strftime('%m/%d/%Y, %I:%M %p') }}</td>
+        <td class="text-center">{{ dbsearch.celery_id }}</td>
+        <td class="text-center">{{ dbsearch.status }}</td>
+        <td class="text-center">
+            <a href="{{ url_for('search.view_dbsearch', dbsearch_pk=dbsearch.id) }}"><button type="button" class="btn btn-primary btn-sm">View</button></a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}
