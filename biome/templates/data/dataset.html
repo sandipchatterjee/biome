@@ -40,7 +40,10 @@
             {% endif %}
         {% if dataset_quickinfo_dict.dbsearches %}
             {% for dbsearch in current_dataset.dbsearches.all() %}
-            <ul class="list-group"><strong>{{ dbsearch.start_time.strftime('%m/%d/%Y, %I:%M %p') }}</strong>
+            <ul class="list-group">
+                <strong><a href="{{ url_for('search.view_dbsearch', dbsearch_pk=dbsearch.id) }}">
+                    {{ dbsearch.start_time.strftime('%m/%d/%Y, %I:%M %p') }}
+                </a></strong>
                 <li class="list-group-item">
                     <ul class="list-group"><h5>SQT files</h5>
                         {% for sqtfile in dbsearch.sqtfiles.all() %}
