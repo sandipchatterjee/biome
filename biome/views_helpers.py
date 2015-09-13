@@ -159,3 +159,46 @@ def save_new_dta_record(dbsearch_id, file_path, original_filename=None):
     app.logger.info('Saved new DTA file {} (Dataset ID {}) to database'.format(file_path, dbsearch_id))
 
     return new_dta_file.id
+
+def clean_params(params):
+
+    ''' Cleans and fills in missing/misformatted search parameters
+    '''
+
+    if params['server_preset'] not in ('garibaldi', 'ims'):
+        params['server_preset'] = 'garibaldi'
+
+    if params['server_preset'] == 'ims':
+        params['mongodb_uri'] = 'mongodb://imsb0501:27018,imsb0515:27018,imsb0601:27018,imsb0615:27018'
+
+
+    # number of threads to run Blazmass using (should be <= num_cores)
+    if params['numthreads'] > params['numcores']:
+        params['numthreads'] = params['numcores']
+
+    # cputime and memgb cannot be user-specified (not part of form)
+    params['cputime'] = params['walltime'] * params['numthreads']
+    params['memgb'] = round(params['numthreads'] * 1.5)  # allowing 1.5GB RAM per thread
+
+    # convert certain params from boolean to 1 or 0
+    params['use_protdb'] = 1 if params['use_protdb'] else 0
+    params['use_seqdb'] = 1 if params['use_seqdb'] else 0
+    params['ppm_fragment_ion_tolerance_high'] = 1 if params['ppm_fragment_ion_tolerance_high'] else 0
+
+    # this can be cleaned up...
+    if not ('diff_search_options' in params and len(params['diff_search_options'])>1):
+        params['diff_search_options'] = ''
+    if not ('diff_search_Nterm' in params and len(params['diff_search_Nterm'])>1):
+        params['diff_search_Nterm'] = ''
+    if not ('diff_search_Cterm' in params and len(params['diff_search_Cterm'])>1):
+        params['diff_search_Cterm'] = ''
+
+    if not ('reverse_peptides' in params and len(params['reverse_peptides'])>1):
+        params['reverse_peptides'] = 0
+    else:
+        params['reverse_peptides'] = 1 if params['reverse_peptides'] else 0
+    
+    params['job_spacing'] = params.get('job_spacing', 1/60)
+    params['job_spacing_init'] = params.get('job_spacing_init', 0)
+
+    return params

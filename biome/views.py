@@ -16,6 +16,7 @@ from biome import ( app,
                     views_documents, 
                     views_helpers, 
                     views_plots, 
+                    views_searches, 
                     )
 
 ## API/Blueprint:
