@@ -15,7 +15,7 @@
         <p><em>{{ parent_dataset.description }}</em></p>
     </div>
     <ul class="list-group">
-        <li class="list-group-item"><h3><small>Database Search</small></h3>
+        <li class="list-group-item"><h3><small>Distributed Search</small></h3>
             <ul class="list-group">
                 {% if celery_task_obj %}
                 <li class="list-group-item">
@@ -44,6 +44,25 @@
                 </li>
                 {% else %}
                 <li class="list-group-item"><h3><small><em>No Associated DTASelect-filter files</em></small></h3></li>
+                {% endif %}
+
+                {% if search_params %}
+                <li class="list-group-item"><h3><small>Search Parameters</small></h3>
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                                <tr>
+                                    <th class="text-center col-md-6">Param Name</th>
+                                    <th class="text-center col-md-6">Value</th>
+                                </tr>
+                        </thead>
+                        {% for param, value in search_params|dictsort %}
+                        <tr>
+                            <td class="text-center col-md-6">{{ param }}</td>
+                            <td class="text-center col-md-6">{{ value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </li>
                 {% endif %}
             </ul>
         </li>

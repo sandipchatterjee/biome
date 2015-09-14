@@ -119,8 +119,16 @@ def view_dbsearch(dbsearch_pk):
     else:
         celery_task_obj = None
 
+    search_params = current_dbsearch.params
+
+    # quick hack for mongodb_uri super long string param value...
+    for key in search_params:
+        if len(str(search_params[key])) > 30:
+            search_params[key] = search_params[key].replace(',', ', ')
+
     return render_template( 'search/dbsearch.html', 
                             current_dbsearch=current_dbsearch, 
                             parent_dataset=parent_dataset, 
                             celery_task_obj=celery_task_obj, 
+                            search_params=search_params, 
                             )
