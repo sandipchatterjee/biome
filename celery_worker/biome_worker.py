@@ -205,6 +205,11 @@ def launch_submission_tasks(job_file_paths):
 
 @app.task(bind=True, name='biome_worker.submit_and_check_job', max_retries = 2)
 def submit_and_check_job(self, args):
+
+    ''' Submits (using `qsub`) and checks PBS job status (using drmaa)
+        for proteomic search jobs
+    '''
+
     def resubmit():
         try:
             raise self.retry(countdown = randint(1,20))
@@ -212,6 +217,12 @@ def submit_and_check_job(self, args):
             print('Job failed exceeded max_retry')
             raise # will also change task.status to FAILURE
             return 'Job failed exceeded max_retry'
+
+    # save qsub arguments to file (filename = [celery task id].taskid) -- might use this for resubmission
+    working_directory = os.path.dirname(args)
+    task_id_args_path = os.path.join(working_directory, self.request.id+'.taskid')
+    with open(task_id_args_path, 'w') as f:
+        f.write('here are the args/filepath for qsub/jobfile')
 
     # fake logic for job failing ~50% of the time
     failure = True if randint(0, 1) else False
