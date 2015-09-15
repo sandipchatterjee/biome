@@ -149,6 +149,12 @@
             <div style="display:none;" id="advancedParams">
                 <div class="row">
                     <div class="col-md-12">
+                    {{ params_form.split_n.label(class="form-label-small") }} 
+                    {{ params_form.split_n(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
                     {{ params_form.mongodb_uri.label(class="form-label-small") }} 
                     {{ params_form.mongodb_uri(class="form-control") }}
                     </div>

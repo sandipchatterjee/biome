@@ -18,17 +18,45 @@
         <li class="list-group-item"><h3><small>Distributed Search</small></h3>
             <ul class="list-group">
                 {% if celery_task_obj %}
+                {% set percent_complete = (100*(tasks_complete|count)/(group_result|count))|round|int %}
+
                 <li class="list-group-item">
-                    <h3>
-                        <small>
-                            Search Status: {% if celery_task_obj.successful() %}<strong>successful</strong>{% endif %}
-                        </small>
-                    </h3>
-                    <ul class="list-group">
-                        <li class="list-group-item"><em>State: </em>{{ celery_task_obj.state }}</li>
-                        <li class="list-group-item"><em>Child tasks: </em>{{ celery_task_obj.children }}</li>
-                        <li class="list-group-item"><em>Tasks ready? </em>{{ celery_task_obj.ready() }}</li>
-                    </ul>
+                    {% set failure_class = '' %}
+                    {% if tasks_failed %}
+                        {% set failure_class = ' progress-bar-danger' %}
+                    {% endif %}
+                    <div class="progress">
+                        <div class="progress-bar{{ failure_class }}" role="progressbar" aria-valuenow="{{ percent_complete }}" aria-valuemin="0" aria-valuemax="100" style="min-width: 2em; width:{{ percent_complete }}%">
+                        {{ percent_complete }}%
+                        </div>
+                    </div>
+                    <p class="text-center">
+                        <button type="button" class="btn btn-default" id="taskStatusShowMoreButton">
+                            {{ tasks_complete|count }} out of {{ group_result|count }} search tasks completed
+                        </button>
+                        {% if tasks_failed %}
+                        <p class="lead text-center">
+                            {{ tasks_failed|count }} tasks failed
+                        </p>
+                        {% endif %}
+                    </p>
+                    <li class="list-group-item" id="taskStatusShowMore" style="display:none;">
+                        <ul class="list-group" ><h3><small>Complete</small></h3>
+                            {% for task_obj in tasks_complete %}
+                            <li class="list-group-item">{{ task_obj.info }}</li>
+                            {% endfor %}
+                        </ul>
+                        <ul class="list-group" ><h3><small>Running</small></h3>
+                            {% for task_obj in tasks_pending_retry %}
+                            <li class="list-group-item">{{ task_obj.state }} ({{ task_obj.id }})</li>
+                            {% endfor %}
+                        </ul>
+                        <ul class="list-group" ><h3><small>Failed</small></h3>
+                            {% for task_obj in tasks_failed %}
+                            <li class="list-group-item">{{ task_obj.state }} ({{ task_obj.id }})</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
                 </li>
                 {% endif %}
 
@@ -84,5 +112,22 @@
       <li class="active">Database Search</li>
     </ol>
 </div>
+
+<script src="{{ url_for('static', filename='js/biome.js') }}"></script>
+<script>
+$(function() {
+    $('#taskStatusShowMoreButton').click(function(event) {
+        event.preventDefault();
+        if ( $('#taskStatusShowMore').is( ':hidden' ) ) {
+            $('#taskStatusShowMoreButton').addClass('active');
+            $('#taskStatusShowMore').slideDown();
+        } else {
+            $('#taskStatusShowMoreButton').removeClass('active');
+            $('#taskStatusShowMore').slideUp();
+        }
+
+    });
+});
+</script>
 
 {% endblock %}

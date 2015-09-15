@@ -116,19 +116,86 @@ def view_dbsearch(dbsearch_pk):
     parent_dataset = models.Dataset.query.get_or_404(current_dbsearch.dataset_id)
     if current_dbsearch.celery_id:
         celery_task_obj = celery.AsyncResult(current_dbsearch.celery_id)
+        if celery_task_obj.children:
+            group_result = celery_task_obj.children[0]
+
+            print('=================')
+            print('ALL STATUSES:', set([task.status for task in group_result]))
+            # {'RETRY', 'SUCCESS', 'PENDING', 'FAILURE'}
+            print('=================')
+
+            # prevents duplication of records in sublists below (if task status changes between different filtering stages)
+            group_result_statuses = [task.status for task in group_result]
+
+            tasks_complete = [task for task, task_status in zip(group_result, group_result_statuses) if task_status == 'SUCCESS']
+            tasks_pending_retry = [task for task, task_status in zip(group_result, group_result_statuses) if task_status in ('PENDING', 'RETRY')]
+            tasks_failed = [task for task, task_status in zip(group_result, group_result_statuses) if task_status == 'FAILURE']
+
+            print('SUCCESS', tasks_complete)
+            print('PENDING/RETRY', tasks_pending_retry)
+            print('FAILURE', tasks_failed)
+
+
+            group_tasks_complete = [child for child in group_result if child.status == 'SUCCESS']
+            group_tasks_incomplete = [child for child in group_result if child.status != 'SUCCESS']
+
+            # checking if return value is None (because child.status returns 'SUCCESS' even if task fails...)
+            # group_tasks_complete = [child for child in group_result if child.info]
+            # group_tasks_incomplete = [child for child in group_result if not child.info]
+
+            # for status, tasks_with_status in zip(('COMPLETE', 'INCOMPLETE'), (group_tasks_complete, group_tasks_incomplete)):
+            #     print('-----------------------------')
+            #     print(status, group_tasks_complete)
+            #     print()
+            #     if [task.result for task in tasks_with_status] != [task.info for task in tasks_with_status]:
+            #         print('!!!! INFO != RESULT')
+            #         print()
+            #     print('INFO (return value)', [task.info for task in tasks_with_status])
+            #     print()
+            #     print('STATE?', [task.state for task in tasks_with_status])
+            #     print()
+            #     print('STATUS?', [task.status for task in tasks_with_status])
+            #     print()
+            #     print('SUCCESSFUL?', [task.successful() for task in tasks_with_status])
+            #     print()
+            #     print('TRACEBACK', [task.traceback for task in tasks_with_status])
+            #     print()
+            #     print('RESULT', [task.result for task in tasks_with_status])
+            #     print()
+            #     print('FAILED?', [task.failed() for task in tasks_with_status])
+            # else:
+            #     print('-----------------------------')
+
+        # print(dir(group_tasks_complete[0]))
     else:
         celery_task_obj = None
+        group_result, group_result_statuses, tasks_complete, tasks_pending_retry, tasks_failed = (None,)*5
+
+    # import time;
+    # for count in range(10):
+    #     print('COUNT', count)
+    #     children = celery_task_obj.children[0] # this is a GroupResult
+    #     for i, child in enumerate(children):
+    #         print(i, child.status)
+    #     print('---------')
+    #     time.sleep(5)
 
     search_params = current_dbsearch.params
 
     # quick hack for mongodb_uri super long string param value...
-    for key in search_params:
-        if len(str(search_params[key])) > 30:
-            search_params[key] = search_params[key].replace(',', ', ')
+    if search_params:
+        for key in search_params:
+            if len(str(search_params[key])) > 30:
+                search_params[key] = search_params[key].replace(',', ', ')
 
     return render_template( 'search/dbsearch.html', 
                             current_dbsearch=current_dbsearch, 
                             parent_dataset=parent_dataset, 
                             celery_task_obj=celery_task_obj, 
+                            group_result=group_result, 
+                            group_result_statuses=group_result_statuses, 
+                            tasks_complete=tasks_complete, 
+                            tasks_pending_retry=tasks_pending_retry, 
+                            tasks_failed=tasks_failed, 
                             search_params=search_params, 
                             )

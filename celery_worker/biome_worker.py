@@ -203,13 +203,14 @@ def launch_submission_tasks(job_file_paths):
     submission_tasks.apply_async()
     return submission_tasks
 
-@app.task(bind=True, name='biome_worker.submit_and_check_job', max_retries = 20)
+@app.task(bind=True, name='biome_worker.submit_and_check_job', max_retries = 2)
 def submit_and_check_job(self, args):
     def resubmit():
         try:
             raise self.retry(countdown = randint(1,20))
         except MaxRetriesExceededError:
             print('Job failed exceeded max_retry')
+            raise # will also change task.status to FAILURE
             return 'Job failed exceeded max_retry'
 
     # fake logic for job failing ~50% of the time
