@@ -56,7 +56,7 @@ def split_ms2_and_make_jobs(new_local_directory, params_dict):
     pass
 
 @celery.task(bind=True, name='biome_worker.submit_and_check_job', max_retries = 2)
-def submit_and_check_job(self, args):
+def submit_and_check_job(self, job_file_path, job_id=None):
     pass
 
 @celery.task(name='biome_worker.launch_submission_tasks')

@@ -203,32 +203,104 @@ def launch_submission_tasks(job_file_paths):
     submission_tasks.apply_async()
     return submission_tasks
 
-@app.task(bind=True, name='biome_worker.submit_and_check_job', max_retries = 2)
-def submit_and_check_job(self, args):
+def submit_pbs_job(job_file_path):
 
-    ''' Submits (using `qsub`) and checks PBS job status (using drmaa)
+    ''' Submits a job specified by job_path to the PBS cluster
+        queue using `qsub` and returns PBS job ID (string)
+    '''
+
+    submit_command = ['qsub', job_file_path]
+
+    try:
+        job_id = subprocess.check_output(submit_command).decode('utf-8').strip()
+        return job_id
+    except subprocess.CalledProcessError:
+        return None
+
+def check_job_output(job_file_path, job_id):
+
+    ''' Run several quick tests to see if a job 
+        that completed "successfully" actually 
+        finished properly
+    '''
+
+    sqt_file_path = job_file_path.replace('.job', '.sqt')
+    job_log_file_path = job_file_path.replace('.job', '.'+job_id)
+
+    # make sure SQT file exists and has nonzero size
+    try:
+        sqt_has_nonzero_size = os.path.getsize(sqt_file_path)
+    except FileNotFoundError:
+        sqt_has_nonzero_size = False
+
+    # make sure job_log_file_path (job log) exists
+    # make sure 'INFO: Done processing MS2:' is in job_log file
+    try:
+        done_processing_ms2 = subprocess.check_output(['grep', '-q', 'INFO: Done processing MS2:', job_log_file_path])
+    except subprocess.CalledProcessError:
+        # file doesn't exist or grep could not find search string in log file
+        # (nonzero exit code)
+        done_processing_ms2 = False
+
+    return all((sqt_has_nonzero_size, 
+                done_processing_ms2, 
+                ))
+
+
+@app.task(bind=True, name='biome_worker.submit_and_check_job', max_retries = 2)
+def submit_and_check_job(self, job_file_path, job_id=None):
+
+    ''' Submits using submit_pbs_job() and checks PBS job status (using drmaa)
         for proteomic search jobs
+
+        PBS jobs are wrapped in this Celery task. Celery's retry functionality is used
+        with the drmaa module to check job status
     '''
 
     def resubmit():
         try:
-            raise self.retry(countdown = randint(1,20))
+            raise self.retry((job_file_path,), {'job_id': None}, countdown = randint(1,20))
         except MaxRetriesExceededError:
             print('Job failed exceeded max_retry')
             raise # will also change task.status to FAILURE
             return 'Job failed exceeded max_retry'
 
-    # save qsub arguments to file (filename = [celery task id].taskid) -- might use this for resubmission
-    working_directory = os.path.dirname(args)
-    task_id_args_path = os.path.join(working_directory, self.request.id+'.taskid')
-    with open(task_id_args_path, 'w') as f:
-        f.write('here are the args/filepath for qsub/jobfile')
+    if job_id is None:
+        # PBS job not yet submitted, or job submission failed
 
-    # fake logic for job failing ~50% of the time
-    failure = True if randint(0, 1) else False
-    if failure:
+        # save qsub arguments to file (filename = [celery task id].taskid) -- might use this for resubmission
+        working_directory = os.path.dirname(job_file_path)
+        task_id_args_path = os.path.join(working_directory, self.request.id+'.taskid')
+        with open(task_id_args_path, 'w') as f:
+            f.write(job_file_path)
+
+        job_id = submit_pbs_job(job_file_path)
+        print('PBS Job ID: {}'.format(job_id))
+
+    with drmaa.Session() as s:
+        job_status = s.jobStatus(job_id)
+    print('PBS Job Status: {}'.format(job_status))
+
+    if job_status not in ('done', 'failed'):
+        # job is either queued, active, or on hold -- check again in 30-90 seconds
+
+        # don't count this status check as a celery task.retry attempt:
+        self.request.retries -= 1
+
+        raise self.retry((job_file_path,), {'job_id': job_id}, countdown = randint(30,60))
+
+    elif job_status == 'failed':
+        # unknown PBS job failure
         resubmit()
+
     else:
-        print('job succeeded -- {}'.format(args))
-        return 'job succeeded -- {}'.format(args)
+        # job_status == 'done'
+
+        # check job file for correct # of scans, check output for 'INFO: Done processing MS2:', etc.
+        # (if that fails, resubmit())
+        if check_job_output(job_file_path, job_id):
+            return 'Job succeeded: {}'.format(job_file_path)
+        else:
+            print('Job {} completed but failed tests'.format(job_file_path))
+            resubmit()
 
