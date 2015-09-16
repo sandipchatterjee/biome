@@ -129,9 +129,6 @@ def view_dbsearch(dbsearch_pk):
             tasks_pending_retry = [task for task, task_status in zip(group_result, group_result_statuses) if task_status in ('PENDING', 'RETRY')]
             tasks_failed = [task for task, task_status in zip(group_result, group_result_statuses) if task_status == 'FAILURE']
 
-            group_tasks_complete = [child for child in group_result if child.status == 'SUCCESS']
-            group_tasks_incomplete = [child for child in group_result if child.status != 'SUCCESS']
-
     else:
         celery_task_obj = None
         group_result, group_result_statuses, tasks_complete, tasks_pending_retry, tasks_failed = (None,)*5

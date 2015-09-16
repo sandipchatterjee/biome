@@ -41,16 +41,16 @@ def echo(echo_string='hello world'):
     print(echo_string)
     return echo_string
 
-@app.task(name='biome_worker.rsync_file')
-def rsync_file(remote_host, remote_filepaths, new_local_directory=None):
+@app.task(bind=True, name='biome_worker.rsync_file')
+def rsync_file(self, remote_host, remote_filepaths, new_local_directory=None):
 
     ''' uses rsync to transfer files in list remote_filepaths from remote_host
         to local directory 'new_local_directory' (random hash generated if None)
     '''
 
     if not new_local_directory:
-        new_local_directory = 'hashed_named_directory'
-    new_local_directory = os.path.expanduser('~')+'/'+new_local_directory
+        new_local_directory = self.request.id
+    new_local_directory = os.path.expanduser('~')+'/biome_proteomics/data/'+new_local_directory
 
     if os.path.exists(new_local_directory):
         pass # should probably exit or at least throw a warning

@@ -45,8 +45,10 @@ def tsum(x, y):
 
     pass
 
-@celery.task(name='biome_worker.rsync_file', queue='sandip')
-def rsync_file(remote_host, remote_filepaths, new_local_directory=None):
+# @celery.task(name='biome_worker.rsync_file', queue='sandip')
+# def rsync_file(remote_host, remote_filepaths, new_local_directory=None):
+@celery.task(bind=True, name='biome_worker.rsync_file')
+def rsync_file(self, remote_host, remote_filepaths, new_local_directory=None):
     pass
 
 @celery.task(name='biome_worker.split_ms2_and_make_jobs', queue='sandip')
