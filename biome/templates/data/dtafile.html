@@ -15,7 +15,10 @@
         <p><em>{{ parent_dataset.description }}</em></p>
     </div>
     <ul class="list-group">
-        <li class="list-group-item"><h3><small>Database Search (from {{ parent_dbsearch.start_time.strftime('%m/%d/%Y, %I:%M %p') }})</small></h3>
+        <li class="list-group-item">
+            <h3><small>
+                Database Search <a href="{{ url_for('search.view_dbsearch', dbsearch_pk=parent_dbsearch.id) }}">({{ parent_dbsearch.start_time.strftime('%m/%d/%Y, %I:%M %p') }})</a>
+            </small></h3>
             <ul class="list-group">
                 {% if sqt_files %}
                 <li class="list-group-item"><h3><small>Associated SQT files</small></h3>
@@ -30,6 +33,16 @@
                 {% else %}
                 <li class="list-group-item"><h3><small><em>No Associated SQT files</em></small></h3></li>
                 {% endif %}
+            </ul>
+        </li>
+
+        <li class="list-group-item"><h3><small>Available Analyses</small></h3>
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <strong>
+                        <a href="{{ url_for('data.salt_step_peptide_analysis', dtafile_pk=current_dtafile.id) }}" download target="_blank">Peptides identified per Liquid Chromatography Step</a>
+                    </strong>
+                </li>
             </ul>
         </li>
 

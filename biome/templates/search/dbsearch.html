@@ -60,6 +60,20 @@
                 </li>
                 {% endif %}
 
+                {% if sqt_files %}
+                <li class="list-group-item"><h3><small>Associated SQT files</small></h3>
+                    <ul class="list-group">
+                        {% for sqt_file in sqt_files %}
+                        <li class="list-group-item">
+                            <a href="{{ url_for('data.sqtfile_info', sqtfile_pk=sqt_file.id) }}">{{ sqt_file.original_filename }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% else %}
+                <li class="list-group-item"><h3><small><em>No Associated SQT files</em></small></h3></li>
+                {% endif %}
+
                 {% if dta_files %}
                 <li class="list-group-item"><h3><small>Associated DTASelect-filter files</small></h3>
                     <ul class="list-group">
