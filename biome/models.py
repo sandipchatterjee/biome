@@ -43,7 +43,7 @@ class DBSearch(db.Model):
     params = db.Column(postgresql.JSON)
     start_time = db.Column(db.DateTime)
 
-    celery_id = db.Column(db.String(36)) # Celery Task ID (hash)
+    celery_id = db.Column(db.String(36), unique=True) # Celery Task ID (group task ID -- see CelerySearchTask)
     status = db.Column(db.String(25))
 
     deleted = db.Column(db.Boolean)
@@ -52,6 +52,7 @@ class DBSearch(db.Model):
 
     sqtfiles = db.relationship('SQTFile', backref='dbsearch', lazy='dynamic')
     dtafiles = db.relationship('DTAFile', backref='dbsearch', lazy='dynamic')
+    celery_search_tasks = db.relationship('CelerySearchTask', backref='dbsearch', lazy='dynamic')
 
     def __init__(self, dataset, params):
         self.start_time = datetime.now()
@@ -170,3 +171,23 @@ class DTAFile(db.Model):
         return '<DTAFile ID: {} // File Path: {} // DBSearch ID: {}>'.format(self.id, self.file_path, self.dbsearch_id)
 
 ####### END SEARCH FILES #######
+
+class CelerySearchTask(db.Model):
+
+    ''' Represents a Celery search subtask (associated with 1 DBSearch)
+    '''
+
+    __tablename__ = 'celery_search_task'
+
+    child_task_id = db.Column(db.String(36), primary_key=True) # Celery task ID (subtask)
+    group_task_id = db.Column(db.String(36), db.ForeignKey('db_search.celery_id')) # Celery task ID (group)
+    status = db.Column(db.String(50)) # status of this task (subtask)
+    last_updated = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+
+    def __init__(self, group_task_id, child_task_id, status):
+        self.group_task_id = group_task_id
+        self.child_task_id = child_task_id
+        self.status = status
+
+    def __repr__(self):
+        return '<CelerySearchTask Task ID: {}>'.format(self.child_task_id)
