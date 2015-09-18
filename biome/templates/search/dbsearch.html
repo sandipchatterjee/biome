@@ -17,12 +17,12 @@
     <ul class="list-group">
         <li class="list-group-item"><h3><small>Distributed Search</small></h3>
             <ul class="list-group">
-                {% if celery_task_obj %}
-                {% set percent_complete = (100*(tasks_complete|count)/(group_result|count))|round|int %}
+                {% if celery_subtasks %}
+                {% set percent_complete = (100*(grouped_subtasks['complete']|count)/(celery_subtasks|count))|round|int %}
 
                 <li class="list-group-item">
                     {% set failure_class = '' %}
-                    {% if tasks_failed %}
+                    {% if grouped_subtasks['failed'] %}
                         {% set failure_class = ' progress-bar-danger' %}
                     {% endif %}
                     <div class="progress">
@@ -32,28 +32,31 @@
                     </div>
                     <p class="text-center">
                         <button type="button" class="btn btn-default" id="taskStatusShowMoreButton">
-                            {{ tasks_complete|count }} out of {{ group_result|count }} search tasks completed
+                            {{ grouped_subtasks['complete']|count }} out of {{ celery_subtasks|count }} search tasks completed
                         </button>
-                        {% if tasks_failed %}
+                        {% if grouped_subtasks['failed'] %}
                         <p class="lead text-center">
-                            {{ tasks_failed|count }} task(s) failed
+                            {{ grouped_subtasks['failed']|count }} task(s) failed
                         </p>
                         {% endif %}
                     </p>
                     <li class="list-group-item" id="taskStatusShowMore" style="display:none;">
                         <ul class="list-group" ><h3><small>Complete</small></h3>
-                            {% for task_obj in tasks_complete %}
-                            <li class="list-group-item">{{ task_obj.info }}</li>
+                            {% for task_obj in grouped_subtasks['complete'] %}
+                            <li class="list-group-item">Task {{ task_obj.child_task_id }} completed</li>
                             {% endfor %}
                         </ul>
                         <ul class="list-group" ><h3><small>Running</small></h3>
-                            {% for task_obj in tasks_pending_retry %}
-                            <li class="list-group-item">{{ task_obj.state }} ({{ task_obj.id }})</li>
+                            {% for task_obj in grouped_subtasks['pending_retry'] %}
+                            <li class="list-group-item">Task {{ task_obj.child_task_id }} in progress</li>
                             {% endfor %}
                         </ul>
                         <ul class="list-group" ><h3><small>Failed</small></h3>
-                            {% for task_obj in tasks_failed %}
-                            <li class="list-group-item">{{ task_obj.state }} ({{ task_obj.id }})</li>
+                            {% for task_obj in grouped_subtasks['failed'] %}
+                            <li class="list-group-item">
+                                Task {{ task_obj.child_task_id }} failed 
+                                <button type="button" class="btn btn-warning retryButton" task="{{ task_obj.child_task_id }}">Retry</button>
+                            </li>
                             {% endfor %}
                         </ul>
                     </li>
@@ -140,6 +143,30 @@ $(function() {
             $('#taskStatusShowMore').slideUp();
         }
 
+    });
+});
+
+$(function() {
+    $('.retryButton').click(function(event) {
+        event.preventDefault();
+
+        var currentTask = $(this).attr('task');
+        console.log('Resubmitting task {0}'.format(currentTask));
+
+        var currentDBSearch = '{{ current_dbsearch.id }}';
+        var resubmitURL = "{{ url_for('search.resubmit_search_tasks', dbsearch_pk=-1) }}".replace(-1, currentDBSearch);
+
+        $.ajax({
+            url: resubmitURL, 
+            type: 'POST', 
+            data: {'oldTaskID': currentTask}, 
+            success: function (result) {
+                console.log('SUCCESS!');
+                console.log(result);
+                // update UI with new information
+            }
+
+        });
     });
 });
 </script>
