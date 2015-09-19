@@ -221,6 +221,27 @@ def view_dbsearch(dbsearch_pk):
                     # CelerySearchTask table update succeeded
 
                     celery_subtasks = current_dbsearch.celery_search_tasks.all()
+
+                    # if all subtasks have successfully finished, update parent DBSearch.status
+                    # and return template without any subtask information
+                    # (FUTURE TODO: delete associated CelerySearchTask rows)
+
+                    all_jobs_finished = all([subtask.status == 'SUCCESS' for subtask in celery_subtasks])
+
+                    if all_jobs_finished:
+
+                        current_dbsearch.status = 'search complete'
+                        db.session.add(current_dbsearch)
+                        db.session.commit()
+
+                        return render_template( 'search/dbsearch.html', 
+                                current_dbsearch=current_dbsearch, 
+                                parent_dataset=parent_dataset, 
+                                sqt_files=sqt_files, 
+                                dta_files=dta_files, 
+                                search_params=search_params, 
+                                )
+                    
                     grouped_subtasks = {'complete': [task for task in celery_subtasks if task.status == 'SUCCESS'], 
                                         'pending_retry': [task for task in celery_subtasks if task.status in ('PENDING', 'RETRY')], 
                                         'failed': [task for task in celery_subtasks if task.status == 'FAILURE']
@@ -280,6 +301,26 @@ def view_dbsearch(dbsearch_pk):
             # because some of the original tasks have been replaced by new tasks
 
             celery_subtasks = current_dbsearch.celery_search_tasks.all()
+
+            # if all subtasks have successfully finished, update parent DBSearch.status
+            # and return template without any subtask information
+            # (FUTURE TODO: delete associated CelerySearchTask rows)
+
+            all_jobs_finished = all([subtask.status == 'SUCCESS' for subtask in celery_subtasks])
+
+            if all_jobs_finished:
+
+                current_dbsearch.status = 'search complete'
+                db.session.add(current_dbsearch)
+                db.session.commit()
+
+                return render_template( 'search/dbsearch.html', 
+                        current_dbsearch=current_dbsearch, 
+                        parent_dataset=parent_dataset, 
+                        sqt_files=sqt_files, 
+                        dta_files=dta_files, 
+                        search_params=search_params, 
+                        )
 
             # Only querying Celery backend for tasks that have 'FAILURE' status in database
 

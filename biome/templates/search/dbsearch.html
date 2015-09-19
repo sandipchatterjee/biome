@@ -15,7 +15,14 @@
         <p><em>{{ parent_dataset.description }}</em></p>
     </div>
     <ul class="list-group">
-        <li class="list-group-item"><h3><small>Distributed Search</small></h3>
+        <li class="list-group-item">
+            <h3>
+                <small>Distributed Search 
+                    {% if current_dbsearch.status %}
+                    <em>({{ current_dbsearch.status }})</em>
+                    {% endif %}
+                </small>
+            </h3>
             <ul class="list-group">
                 {% if celery_subtasks %}
                 {% set percent_complete = (100*(grouped_subtasks['complete']|count)/(celery_subtasks|count))|round|int %}
