@@ -247,8 +247,8 @@ def check_job_output(job_file_path, job_id):
                 ))
 
 
-@app.task(bind=True, name='biome_worker.submit_and_check_job', max_retries = 2)
-def submit_and_check_job(self, job_file_path, job_id=None):
+@app.task(bind=True, name='biome_worker.submit_and_check_job', max_retries = 1)
+def submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None):
 
     ''' Submits using submit_pbs_job() and checks PBS job status (using drmaa)
         for proteomic search jobs
@@ -264,6 +264,16 @@ def submit_and_check_job(self, job_file_path, job_id=None):
             print('Job failed exceeded max_retry')
             raise # will also change task.status to FAILURE
             return 'Job failed exceeded max_retry'
+
+    if old_task_info:
+        # this task is being manually resubmitted by the user
+        group_id, old_child_task = old_task_info
+
+        base_data_directory = os.path.expanduser('~')+'/biome_proteomics/data'
+        group_id_data_directory = base_data_directory+'/'+group_id
+        old_task_id_file = group_id_data_directory+'/dummy/'+old_child_task+'.taskid'
+        with open(old_task_id_file) as f:
+            job_file_path = f.read().strip()
 
     if job_id is None:
         # PBS job not yet submitted, or job submission failed
@@ -304,3 +314,11 @@ def submit_and_check_job(self, job_file_path, job_id=None):
             print('Job {} completed but failed tests'.format(job_file_path))
             resubmit()
 
+    # fake logic for job failing ~50% of the time
+    # import time; time.sleep(randint(10,20))
+    # failure = True if randint(0, 1) else False
+    # if failure:
+    #     resubmit()
+    # else:
+    #     print('job succeeded -- {}'.format(job_file_path))
+    #     return 'job succeeded -- {}'.format(job_file_path)

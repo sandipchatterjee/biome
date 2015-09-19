@@ -44,6 +44,7 @@ class DBSearch(db.Model):
     start_time = db.Column(db.DateTime)
 
     celery_id = db.Column(db.String(36), unique=True) # Celery Task ID (group task ID -- see CelerySearchTask)
+    remote_directory = db.Column(db.String(36), unique=True) # data directory name (random hash) on remote/cluster storage
     status = db.Column(db.String(25))
 
     deleted = db.Column(db.Boolean)

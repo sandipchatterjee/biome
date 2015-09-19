@@ -34,9 +34,12 @@
                         <button type="button" class="btn btn-default" id="taskStatusShowMoreButton">
                             {{ grouped_subtasks['complete']|count }} out of {{ celery_subtasks|count }} search tasks completed
                         </button>
+                        <p class="lead text-center">
+                            &nbsp;{{ grouped_subtasks['pending_retry']|count }} task(s) in progress&nbsp;
+                        </p>
                         {% if grouped_subtasks['failed'] %}
                         <p class="lead text-center">
-                            {{ grouped_subtasks['failed']|count }} task(s) failed
+                            <span class="bg-danger">&nbsp;{{ grouped_subtasks['failed']|count }} task(s) failed&nbsp;</span>
                         </p>
                         {% endif %}
                     </p>

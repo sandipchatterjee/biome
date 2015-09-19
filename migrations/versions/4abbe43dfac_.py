@@ -1,13 +1,13 @@
 """empty message
 
-Revision ID: e8e6b0f273
+Revision ID: 4abbe43dfac
 Revises: None
-Create Date: 2015-09-16 18:13:36.760310
+Create Date: 2015-09-18 16:52:33.536137
 
 """
 
 # revision identifiers, used by Alembic.
-revision = 'e8e6b0f273'
+revision = '4abbe43dfac'
 down_revision = None
 
 from alembic import op
@@ -29,12 +29,14 @@ def upgrade():
     sa.Column('params', postgresql.JSON(), nullable=True),
     sa.Column('start_time', sa.DateTime(), nullable=True),
     sa.Column('celery_id', sa.String(length=36), nullable=True),
+    sa.Column('remote_directory', sa.String(length=36), nullable=True),
     sa.Column('status', sa.String(length=25), nullable=True),
     sa.Column('deleted', sa.Boolean(), nullable=True),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('celery_id')
+    sa.UniqueConstraint('celery_id'),
+    sa.UniqueConstraint('remote_directory')
     )
     op.create_table('ms1_file',
     sa.Column('id', sa.Integer(), nullable=False),

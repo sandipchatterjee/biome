@@ -26,7 +26,7 @@ from biome import ( api,
                     )
 from tempfile import mkstemp
 from celery import group, chain, chord
-# from celery.result import AsyncResult
+from uuid import uuid4
 import re
 import json
 import shutil
@@ -66,7 +66,8 @@ def new_search(dataset_pk):
                             '/home/admin/test_files/121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07_11_duplicate.ms2']
         ###### REMOVE ^^
 
-        rsync_task = tasks.rsync_file.s(remote_host, remote_filepaths, new_local_directory=None).set(queue='sandip')
+        remote_directory = str(uuid4()) # random 36-character hash
+        rsync_task = tasks.rsync_file.s(remote_host, remote_filepaths, new_local_directory=remote_directory).set(queue='sandip')
         split_and_create_jobs_task = tasks.split_ms2_and_make_jobs.s(params).set(queue='sandip')
 
         launch_submission_tasks = tasks.launch_submission_tasks.s().set(queue='sandip')
@@ -77,6 +78,7 @@ def new_search(dataset_pk):
         current_dbsearch = models.DBSearch.query.get(new_dbsearch_id)
         current_dbsearch.celery_id = str(task)
         current_dbsearch.status = 'submitted'
+        current_dbsearch.remote_directory = remote_directory
         db.session.commit()
 
         print(task.children) # this GroupResult ID won't be available until a few moments after launching
@@ -138,26 +140,37 @@ def resubmit_search_tasks(dbsearch_pk):
     '''
 
     current_dbsearch = models.DBSearch.query.get(dbsearch_pk)
+    remote_directory = current_dbsearch.remote_directory
 
     # get old Task ID from POST request
-    task_id = request.form['oldTaskID']
-    print(task_id)
+    old_child_task_id = request.form['oldTaskID']
+    print(old_child_task_id)
 
     # resubmit job (launch remote celery task)
-    new_task_id = 'new_hash_val'
+    job_file_path = None
+
+    # Celery task: submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None)
+    # task.apply_async(args, kwargs) -- args is a list/tuple, kwargs is a dict
+
+    new_task = tasks.submit_and_check_job.apply_async((job_file_path, ), dict(old_task_info=(remote_directory, old_child_task_id)), queue='sandip')
+    new_task_id = str(new_task)
 
     # update dbsearch.status
     current_dbsearch.status = 'resubmitted'
 
     # update CelerySearchTask table 
-    celery_subtask_row = models.CelerySearchTask.query.get(task_id)
+    celery_subtask_row = models.CelerySearchTask.query.get(old_child_task_id)
     celery_subtask_row.child_task_id = new_task_id
+    celery_subtask_row.status = 'RETRY'
 
     db.session.add(current_dbsearch)
     db.session.add(celery_subtask_row)
     db.session.commit()
 
-    new_task_info = {}
+    new_task_info = {   'new_id': celery_subtask_row.child_task_id, 
+                        'old_id': old_child_task_id, 
+                        'status': current_dbsearch.status, 
+                        }
 
     return jsonify(new_task_info)
 
@@ -315,72 +328,5 @@ def view_dbsearch(dbsearch_pk):
                             parent_dataset=parent_dataset, 
                             sqt_files=sqt_files, 
                             dta_files=dta_files, 
-                            # celery_task_obj=celery_task_obj, 
-                            # group_result=group_result, 
-                            # group_result_statuses=group_result_statuses, 
-                            # tasks_complete=tasks_complete, 
-                            # tasks_pending_retry=tasks_pending_retry, 
-                            # tasks_failed=tasks_failed, 
                             search_params=search_params, 
                             )
-
-    #### old:
-    # group_result = None
-    # if current_dbsearch.celery_id:
-    #     celery_task_obj = celery.AsyncResult(current_dbsearch.celery_id)
-    #     print(celery_task_obj.children)
-    #     if celery_task_obj.children:
-    #         group_result = celery_task_obj.children[0]
-
-    #         # Possible status values
-    #         # {'RETRY', 'SUCCESS', 'PENDING', 'FAILURE'}
-
-    #         # prevents duplication of records in sublists below (if task status changes between different filtering stages)
-    #         group_result_statuses = [task.status for task in group_result]
-
-    #         tasks_complete = [task for task, task_status in zip(group_result, group_result_statuses) if task_status == 'SUCCESS']
-    #         tasks_pending_retry = [task for task, task_status in zip(group_result, group_result_statuses) if task_status in ('PENDING', 'RETRY')]
-    #         tasks_failed = [task for task, task_status in zip(group_result, group_result_statuses) if task_status == 'FAILURE']
-
-    #         # update CelerySearchTask table
-    #         for task_obj in group_result:
-    #             existing_record = models.CelerySearchTask.query.get(task_obj.id)
-    #             if existing_record:
-    #                 if existing_record.status != task_obj.status:
-    #                     existing_record.status = task_obj.status
-    #                     db.session.add(existing_record)
-    #             else:
-    #                 db.session.add(models.CelerySearchTask(current_dbsearch.celery_id, task_obj.id, task_obj.status))
-
-    #         else:
-    #             db.session.commit()
-
-    #         print(current_dbsearch.celery_search_tasks.all())#!!!!!!!!!!!!!!!!!!!
-    # else:
-    #     celery_task_obj = None
-    #     group_result, group_result_statuses, tasks_complete, tasks_pending_retry, tasks_failed = (None,)*5
-
-    # search_params = current_dbsearch.params
-
-    # # quick hack for mongodb_uri super long string param value...
-    # if search_params:
-    #     for key in search_params:
-    #         if len(str(search_params[key])) > 30:
-    #             search_params[key] = search_params[key].replace(',', ', ')
-
-    # sqt_files = current_dbsearch.sqtfiles.all()
-    # dta_files = current_dbsearch.dtafiles.all()
-    # print(current_dbsearch.celery_search_tasks.all())
-    # return render_template( 'search/dbsearch.html', 
-    #                         current_dbsearch=current_dbsearch, 
-    #                         parent_dataset=parent_dataset, 
-    #                         sqt_files=sqt_files, 
-    #                         dta_files=dta_files, 
-    #                         celery_task_obj=celery_task_obj, 
-    #                         group_result=group_result, 
-    #                         group_result_statuses=group_result_statuses, 
-    #                         tasks_complete=tasks_complete, 
-    #                         tasks_pending_retry=tasks_pending_retry, 
-    #                         tasks_failed=tasks_failed, 
-    #                         search_params=search_params, 
-    #                         )
