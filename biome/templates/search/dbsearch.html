@@ -58,7 +58,10 @@
                             {% for task_obj in grouped_subtasks['failed'] %}
                             <li class="list-group-item">
                                 Task {{ task_obj.child_task_id }} failed 
-                                <button type="button" class="btn btn-warning retryButton" task="{{ task_obj.child_task_id }}">Retry</button>
+                                &nbsp;&nbsp;<a href="" class="btn btn-warning retryButton" task="{{ task_obj.child_task_id }}">Retry</a>
+                                <strong>&nbsp;&nbsp;
+                                    <span id="{{ task_obj.child_task_id }}"></span>
+                                </strong>
                             </li>
                             {% endfor %}
                         </ul>
@@ -159,6 +162,8 @@ $(function() {
         var currentDBSearch = '{{ current_dbsearch.id }}';
         var resubmitURL = "{{ url_for('search.resubmit_search_tasks', dbsearch_pk=-1) }}".replace(-1, currentDBSearch);
 
+        $(this).addClass('disabled');
+
         $.ajax({
             url: resubmitURL, 
             type: 'POST', 
@@ -166,7 +171,12 @@ $(function() {
             success: function (result) {
                 console.log('SUCCESS!');
                 console.log(result);
-                // update UI with new information
+
+                $('#{0}'.format(currentTask)).text('Resubmitted as new task {0}'.format(result['new_id'])).fadeIn();
+                
+            }, 
+            error: function(result) {
+                $('#{0}'.format(currentTask)).text('Retry unsuccessful').fadeIn();
             }
 
         });
