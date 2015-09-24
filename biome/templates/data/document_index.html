@@ -79,9 +79,9 @@
                 <div class="col-md-12">
                 {{ upload_form.dataset_name.label(class="form-label") }} 
                 <small><em>
-                    (60 character max)
+                    (60 character max, <strong>required</strong>)
                 </em></small>
-                {{ upload_form.dataset_name(class="form-control") }}
+                {{ upload_form.dataset_name(class="form-control", id="datasetNameField") }}
                 </div>
             </div>
             <div class="row">
@@ -110,7 +110,7 @@
             </div>
             <div class="row">
                 <div class="col-md-12">
-                {{ upload_form.submit(class="btn btn-primary btn-lg", id="upload_button") }}
+                {{ upload_form.submit(class="btn btn-primary btn-lg", id="upload_button", disabled=true) }}
                 </div>
             </div>
         </form>
@@ -137,6 +137,19 @@ $(document).ready(function () {
         } else {
             if (log)
                 alert(log);
+        }
+    });
+});
+
+// Highlight Name field and disable Upload button if no name typed in
+$(function() {
+    $('#datasetNameField').focusout(function () {
+        if (!$(this).val()) {
+            $('#datasetNameField').addClass('highlight-form-field');
+        }
+        else {
+            $('#datasetNameField').removeClass('highlight-form-field');
+            $('#upload_button').prop('disabled', false);
         }
     });
 });
