@@ -5,6 +5,8 @@ class BaseConfig(object):
     ''' Base configuration class for Biome app
     '''
 
+    CONFIG_CLASS = os.getenv('BIOME_CONFIG', 'default')
+
     DEBUG = False
     TESTING = False
 
@@ -30,6 +32,8 @@ class ProdConfig(BaseConfig):
     ''' Production configuration class (TSRI)
     '''
 
+    CONFIG_CLASS = os.getenv('BIOME_CONFIG', 'default')
+
     # Connect String: postgresql+psycopg2://user:password@host:port/dbname[?key=value&key=value...]
     # local postgres install on web server
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://biome@localhost:5432/biome'
@@ -41,6 +45,8 @@ class DevConfig(BaseConfig):
     ''' Dev server configuration class
     '''
 
+    CONFIG_CLASS = os.getenv('BIOME_CONFIG', 'default')
+    
     DEBUG = True
     TESTING = True
 
@@ -54,6 +60,8 @@ class DevConfigTSRI(DevConfig):
         (uses Redis host on local network)
     '''
 
+    CONFIG_CLASS = os.getenv('BIOME_CONFIG', 'default')
+    
     CELERY_BROKER_URL = 'redis://wl-cmadmin:6379/0'
     CELERY_RESULT_BACKEND = 'redis://wl-cmadmin:6379'
 
@@ -62,6 +70,8 @@ class TestConfig(BaseConfig):
     ''' Testing-only configuration class
     '''
 
+    CONFIG_CLASS = os.getenv('BIOME_CONFIG', 'default')
+    
     DEBUG = False
     TESTING = True
 
@@ -69,6 +79,7 @@ class TestConfig(BaseConfig):
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://sandip@localhost:5432/biometesting'
     # SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
 
+# production config keys should have 'production' in their name
 config = {  'development': 'biome.config.DevConfig', 
             'testing': 'biome.config.TestConfig', 
             'development_tsri': 'biome.config.DevConfigTSRI', 
@@ -85,7 +96,7 @@ def set_config(app):
     config_name = os.getenv('BIOME_CONFIG', 'default')
     app.config.from_object(config[config_name])
 
-    logger_info = 'Using app configuration {} ({}) -- Set environment variable $BIOME_CONFIG to one of ({}) to change'
+    logger_info = 'Using app configuration "{}" ({}) -- Set environment variable $BIOME_CONFIG to one of ({}) to change'
     app.logger.info(logger_info.format( config_name, 
                                         config[config_name], 
                                         ','.join(config.keys())

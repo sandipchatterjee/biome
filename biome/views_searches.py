@@ -62,9 +62,9 @@ def new_search(dataset_pk):
 
 
         # hard-coded for now... remove later! (once on production server)
-        remote_filepaths = ['/home/admin/test_files/121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07_11.ms2', 
-                            '/home/admin/test_files/121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07_11_duplicate.ms2']
-        ###### REMOVE ^^
+        if 'production' not in app.config['CONFIG_CLASS']:
+            remote_filepaths = ['/home/admin/test_files/121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07_11.ms2', 
+                                '/home/admin/test_files/121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07_11_duplicate.ms2']
 
         remote_directory = str(uuid4()) # random 36-character hash
         rsync_task = tasks.rsync_file.s(remote_host, remote_filepaths, new_local_directory=remote_directory).set(queue='sandip')
