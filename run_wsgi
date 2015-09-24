@@ -1,0 +1,3 @@
+#!/bin/bash
+
+uwsgi --ini biome.ini -w manage:app

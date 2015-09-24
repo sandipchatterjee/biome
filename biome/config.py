@@ -10,6 +10,8 @@ class BaseConfig(object):
 
     SECRET_KEY = 'secret_key_from_env'
     UPLOAD_FOLDER = os.getcwd()+'/'+'biome/data_files'
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
 
     CELERY_BROKER_URL = 'redis://localhost:6379/0'
     CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
@@ -22,6 +24,17 @@ class BaseConfig(object):
     CELERY_RESULT_SERIALIZER = 'pickle'
 
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://'
+
+class ProdConfig(BaseConfig):
+
+    ''' Production configuration class (TSRI)
+    '''
+
+    # Connect String: postgresql+psycopg2://user:password@host:port/dbname[?key=value&key=value...]
+    # local postgres install on web server
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://biome@localhost:5432/biome'
+    CELERY_BROKER_URL = 'redis://wl-cmadmin:6379/0'
+    CELERY_RESULT_BACKEND = 'redis://wl-cmadmin:6379'
 
 class DevConfig(BaseConfig):
 
@@ -59,6 +72,7 @@ class TestConfig(BaseConfig):
 config = {  'development': 'biome.config.DevConfig', 
             'testing': 'biome.config.TestConfig', 
             'development_tsri': 'biome.config.DevConfigTSRI', 
+            'production_tsri': 'biome.config.ProdConfig', 
             'default': 'biome.config.DevConfig', 
             }
 
