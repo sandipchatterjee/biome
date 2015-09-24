@@ -1,3 +1,6 @@
+# logfiles, including rotating file logs (*.log1, *.log2)
+log_biome_*log*
+
 # config
 config.py
 
