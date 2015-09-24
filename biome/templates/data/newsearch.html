@@ -22,7 +22,7 @@
                 <small><em>
                     (60 character max, <strong>required</strong>)
                 </em></small>
-                {{ params_form.search_name(class="form-control") }}
+                {{ params_form.search_name(class="form-control", autofocus='') }}
                 </div>
             </div>
 
@@ -214,7 +214,7 @@
             </div>
             <div class="row">
                 <div class="col-md-12" id="submitSearchDiv">
-                {{ params_form.submit(class="btn btn-warning btn-lg pull-right", id="submitSearchButton") }}
+                {{ params_form.submit(class="btn btn-warning btn-lg pull-right", id="submitSearchButton", disabled=true) }}
                 </div>
             </div>
         </form>
@@ -283,6 +283,7 @@ $(function() {
         }
         else {
             $('#search_name').removeClass('highlight-form-field');
+            $('#submitSearchButton').prop('disabled', false);
         }
     });
 });
