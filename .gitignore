@@ -1,3 +1,6 @@
+# pid files (store PIDs for uWSGI, etc)
+*.pid
+
 # logfiles, including rotating file logs (*.log1, *.log2)
 log_biome_*log*
 
