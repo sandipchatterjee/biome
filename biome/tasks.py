@@ -55,7 +55,7 @@ def rsync_file(self, remote_host, remote_filepaths, new_local_directory=None):
 def split_ms2_and_make_jobs(new_local_directory, params_dict):
     pass
 
-@celery.task(bind=True, name='biome_worker.submit_and_check_job', max_retries=1)
+@celery.task(bind=True, name='biome_worker.submit_and_check_job', max_retries=3)
 def submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None):
     pass
 

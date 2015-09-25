@@ -237,6 +237,7 @@ def check_job_output(job_file_path, job_id):
     # make sure 'INFO: Done processing MS2:' is in job_log file
     try:
         done_processing_ms2 = subprocess.check_output(['grep', '-q', 'INFO: Done processing MS2:', job_log_file_path])
+        done_processing_ms2 = True # necessary because grep -q returns an empty string...
     except subprocess.CalledProcessError:
         # file doesn't exist or grep could not find search string in log file
         # (nonzero exit code)
@@ -247,7 +248,7 @@ def check_job_output(job_file_path, job_id):
                 ))
 
 
-@app.task(bind=True, name='biome_worker.submit_and_check_job', max_retries = 1)
+@app.task(bind=True, name='biome_worker.submit_and_check_job', max_retries = 3)
 def submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None):
 
     ''' Submits using submit_pbs_job() and checks PBS job status (using drmaa)
