@@ -346,9 +346,43 @@ def combine_sqt_parts(base_directory_name, params):
                                     )
 
     try:
+        # TODO: rewrite this short bash script in python -- causes too many errors
         subprocess.check_call(['/gpfs/home/gstupp/metaproteomics/cluster/combine_sqt_parts.sh', temp_directory], cwd=base_directory)
     except subprocess.CalledProcessError:
         print('Error combining SQT parts')
+        # raise
+
+    return base_directory
+
+@app.task(name='biome_worker.make_filtered_fasta')
+def make_filtered_fasta(base_directory, params):
+
+    ''' Make a filtered FASTA file for DTASelect
+    '''
+
+    try:
+        # TODO: import this as a module and run instead of using subprocess
+        # TODO: update to use MongoDB URI instead of host/port
+        output = subprocess.check_output((  'python3', 
+                                            '/gpfs/home/gstupp/metaproteomics/cluster/make_filtered_database.py', # script path
+                                            '-s',           # create sequest.params
+                                            '--seqdb',      # ComPIL SeqDB database name
+                                            params['seqdb_name'], 
+                                            '--seqdbcoll',  # ComPIL SeqDB collection name
+                                            params['seqdbcoll'], 
+                                            '--protdb',     # ComPIL ProtDB database name
+                                            params['protdb_name'], 
+                                            '--protdbcoll', 
+                                            params['protdbcoll'], 
+                                            '--host',       # ComPIL hostname
+                                            'wl-cmadmin',   # [hard-coded for now, update to use MongoDB URI]
+                                            '--port',       # ComPIL port
+                                            '27018', 
+                                            ), cwd=base_directory)
+    except subprocess.CalledProcessError:
+        print('Error creating filtered FASTA file')
         raise
+
+    print(output)
 
     return base_directory

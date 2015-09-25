@@ -66,3 +66,7 @@ def launch_submission_tasks(ms2_file_chunks):
 @celery.task(name='biome_worker.combine_sqt_parts')
 def combine_sqt_parts(base_directory_name, params):
     pass
+
+@celery.task(name='biome_worker.make_filtered_fasta')
+def make_filtered_fasta(base_directory, params):
+    pass

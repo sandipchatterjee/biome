@@ -375,7 +375,7 @@ def view_dbsearch(dbsearch_pk):
 @search.route('/<dbsearch_pk>/submitdtaselect')
 def submit_dtaselect(dbsearch_pk):
 
-    ''' Submits combine_sqt_parts, make_filtered_db, 
+    ''' Submits combine_sqt_parts, make_filtered_fasta, 
         and run_dtaselect remote tasks in a Celery chain
     '''
 
@@ -388,5 +388,18 @@ def submit_dtaselect(dbsearch_pk):
 
     task_id = str(tasks.combine_sqt_parts.apply_async(args=[base_directory_name, params], queue='sandip'))
 
-    return jsonify({'task_id': task_id})
+    combine_sqt_parts_task = tasks.combine_sqt_parts.s(base_directory_name, params).set(queue='sandip')
+    make_filtered_fasta_task = tasks.make_filtered_fasta.s(params).set(queue='sandip')
+    # dtaselect_task = tasks.dtaselect.s(params).set(queue='sandip')
+
+    chained_tasks = combine_sqt_parts_task | make_filtered_fasta_task
+    # chained_tasks = combine_sqt_parts_task | make_filtered_fasta_task | dtaselect_task
+    task_id = chained_tasks.apply_async()
+
+    # update dbsearch celery task ID
+    # current_dbsearch.celery_id = str(task_id)
+    # db.session.add(current_dbsearch)
+    # db.session.commit()
+
+    return jsonify({'task_id': str(task_id)})
 
