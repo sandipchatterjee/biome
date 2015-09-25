@@ -330,11 +330,25 @@ def submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None):
             print('Job {} completed but failed tests'.format(job_file_path))
             resubmit()
 
-    # fake logic for job failing ~50% of the time
-    # import time; time.sleep(randint(10,20))
-    # failure = True if randint(0, 1) else False
-    # if failure:
-    #     resubmit()
-    # else:
-    #     print('job succeeded -- {}'.format(job_file_path))
-    #     return 'job succeeded -- {}'.format(job_file_path)
+@app.task(name='biome_worker.combine_sqt_parts')
+def combine_sqt_parts(base_directory_name, params):
+
+    ''' Combines all SQT subparts (from cluster search) 
+        into their parent files
+    '''
+
+    temp_directory = params['temp']
+
+    base_directory = os.path.join(  os.path.expanduser('~'), 
+                                    'biome_proteomics', 
+                                    'data', 
+                                    base_directory_name
+                                    )
+
+    try:
+        subprocess.check_call(['/gpfs/home/gstupp/metaproteomics/cluster/combine_sqt_parts.sh', temp_directory], cwd=base_directory)
+    except subprocess.CalledProcessError:
+        print('Error combining SQT parts')
+        raise
+
+    return base_directory

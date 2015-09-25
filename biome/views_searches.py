@@ -371,3 +371,22 @@ def view_dbsearch(dbsearch_pk):
                             dta_files=dta_files, 
                             search_params=search_params, 
                             )
+
+@search.route('/<dbsearch_pk>/submitdtaselect')
+def submit_dtaselect(dbsearch_pk):
+
+    ''' Submits combine_sqt_parts, make_filtered_db, 
+        and run_dtaselect remote tasks in a Celery chain
+    '''
+
+    current_dbsearch = models.DBSearch.query.get(dbsearch_pk)
+    base_directory_name = current_dbsearch.remote_directory
+    params = current_dbsearch.params
+
+    if current_dbsearch.status != 'search complete':
+        return jsonify({'error': 'invalid status for filtering'})
+
+    task_id = str(tasks.combine_sqt_parts.apply_async(args=[base_directory_name, params], queue='sandip'))
+
+    return jsonify({'task_id': task_id})
+

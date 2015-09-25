@@ -62,3 +62,7 @@ def submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None):
 @celery.task(name='biome_worker.launch_submission_tasks')
 def launch_submission_tasks(ms2_file_chunks):
     pass
+
+@celery.task(name='biome_worker.combine_sqt_parts')
+def combine_sqt_parts(base_directory_name, params):
+    pass
