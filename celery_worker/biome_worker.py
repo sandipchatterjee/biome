@@ -10,6 +10,7 @@ import time
 import traceback
 import subprocess
 from celery import Celery, group
+from fileinput import FileInput
 from random import randint
 from textwrap import dedent
 from celery.exceptions import MaxRetriesExceededError
@@ -337,20 +338,49 @@ def combine_sqt_parts(base_directory_name, params):
         into their parent files
     '''
 
-    temp_directory = params['temp']
-
-    base_directory = os.path.join(  os.path.expanduser('~'), 
-                                    'biome_proteomics', 
-                                    'data', 
+    base_directory = os.path.join(  os.path.expanduser('~'),
+                                    'biome_proteomics',
+                                    'data',
                                     base_directory_name
                                     )
+    os.chdir(base_directory)
+    temp_directory_name = params['temp']
+    temp_directory = os.path.join(  base_directory,
+                                    temp_directory_name
+                                    )
 
-    try:
-        # TODO: rewrite this short bash script in python -- causes too many errors
-        subprocess.check_call(['/gpfs/home/gstupp/metaproteomics/cluster/combine_sqt_parts.sh', temp_directory], cwd=base_directory)
-    except subprocess.CalledProcessError:
-        print('Error combining SQT parts')
-        # raise
+    # get parent MS2 filenames
+    # i.e., 121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07.ms2
+    base_ms2_files = [os.path.basename(filepath) for filepath in glob.glob(os.path.join(base_directory, '*.ms2'))]
+
+    # extract base names
+    # i.e., '121614_SC_sampleH1sol_25ug_pepstd_HCD_FTMS_MS2_07'
+    base_filenames = [filename.replace('.ms2', '') for filename in base_ms2_files]
+
+    for base_filename in base_filenames:
+        child_files = glob.glob(os.path.join(temp_directory, base_filename+'*.sqt'))
+
+        if child_files:
+
+            # Save "H" lines at the start of the file
+            with open(child_files[0]) as f:
+                H_lines = []
+                for line in f:
+                    if line.startswith('H\t'):
+                        H_lines.append(line)
+                    else:
+                        break
+
+            # Create a new base SQT file with H_lines and all other data from child files
+            with open(base_filename+'.sqt', 'w') as f, FileInput(child_files) as g:
+                for line in H_lines:
+                    f.write(line)
+                for line in g:
+                    if not line.startswith('H\t'):
+                        if line.endswith('\n'):
+                            f.write(line)
+                        else:
+                            f.write(line+'\n')
 
     return base_directory
 
