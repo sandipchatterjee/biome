@@ -224,6 +224,7 @@ def check_job_output(job_file_path, job_id):
         finished properly
     '''
 
+    ms2_file_path = job_file_path.replace('.job', '.ms2')
     sqt_file_path = job_file_path.replace('.job', '.sqt')
     job_log_file_path = job_file_path.replace('.job', '.'+job_id)
 
@@ -243,10 +244,24 @@ def check_job_output(job_file_path, job_id):
         # (nonzero exit code)
         done_processing_ms2 = False
 
+    # make sure SQT output has >= 95% as many scans as MS2 input
+    # (scans could still have no matches...)
+    try:
+        ms2_scans = int(subprocess.check_output(['grep', '-c', '^S', ms2_file_path]))
+        sqt_scans = int(subprocess.check_output(['grep', '-c', '^S', sqt_file_path]))
+        if sqt_scans >= ms2_scans*0.5:
+            enough_scans = True
+        else:
+            enough_scans = False
+    except subprocess.CalledProcessError:
+        # one of the files not found... or some other error with grep
+        # (or... zero scans found in one of the files)
+        enough_scans = False
+
     return all((sqt_has_nonzero_size, 
                 done_processing_ms2, 
+                enough_scans, 
                 ))
-
 
 @app.task(bind=True, name='biome_worker.submit_and_check_job', max_retries = 3)
 def submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None):
