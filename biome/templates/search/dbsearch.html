@@ -19,10 +19,28 @@
             <h3>
                 <small>Distributed Search 
                     {% if current_dbsearch.status %}
-                    <em>({{ current_dbsearch.status }})</em>
+                    <span id="currentDBSearchStatus"><em>({{ current_dbsearch.status }})</em></span>
                     {% endif %}
                 </small>
             </h3>
+            {% if current_dbsearch.status %}
+                {% if current_dbsearch.status == 'search complete' %}
+                <p>
+                    <span id="submitDTASelectArea">
+                        <button type="button" class="btn btn-warning btn-block" id="submitDTASelectButton">Filter with DTASelect</button>
+                    </span>
+                </p>
+                {% endif %}
+                {% if current_dbsearch.status == 'running dtaselect' %}
+                <p>
+                    <span id="submitDTASelectArea">
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-warning progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+                        </div>
+                    </span>
+                </p>
+                {% endif %}
+            {% endif %}
             <ul class="list-group">
                 {% if celery_subtasks %}
                 {% set percent_complete = (100*(grouped_subtasks['complete']|count)/(celery_subtasks|count))|round|int %}
@@ -184,6 +202,38 @@ $(function() {
             }, 
             error: function(result) {
                 $('#{0}'.format(currentTask)).text('Retry unsuccessful').fadeIn();
+            }
+
+        });
+    });
+});
+
+$(function() {
+    $('#submitDTASelectButton').click(function(event) {
+        event.preventDefault();
+
+        console.log('Submitting DTASelect...');
+
+        var currentDBSearch = '{{ current_dbsearch.id }}';
+        var submitDTASelectURL = "{{ url_for('search.submit_dtaselect', dbsearch_pk=-1) }}".replace(-1, currentDBSearch);
+
+        $(this).addClass('disabled');
+
+        $.ajax({
+            url: submitDTASelectURL, 
+            type: 'GET', 
+            // data: {'oldTaskID': currentTask}, 
+            success: function (result) {
+                console.log('SUCCESS!');
+                console.log(result);
+
+                // $('#submitDTASelectArea').html('Submitted DTASelect task {0}'.format(result['task_id'])).fadeIn();
+                $('#submitDTASelectArea').html('<p>Submitted DTASelect with Task ID {0}</p><div class="progress"><div class="progress-bar progress-bar-warning progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div></div>'.format(result['task_id'])).fadeIn();
+                $('#currentDBSearchStatus').html('<em>(running dtaselect)</em>');
+                
+            }, 
+            error: function(result) {
+                $(this).html('DTASelect task submission failed').fadeIn();
             }
 
         });

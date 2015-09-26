@@ -276,6 +276,27 @@ def view_dbsearch(dbsearch_pk):
             if set_or_update_celery_search_tasks(current_dbsearch.celery_id, group_result):
 
                 celery_subtasks = current_dbsearch.celery_search_tasks.all()
+
+                # if all subtasks have successfully finished, update parent DBSearch.status
+                # and return template without any subtask information
+                # (FUTURE TODO: delete associated CelerySearchTask rows)
+
+                all_jobs_finished = all([subtask.status == 'SUCCESS' for subtask in celery_subtasks])
+
+                if all_jobs_finished:
+
+                    current_dbsearch.status = 'search complete'
+                    db.session.add(current_dbsearch)
+                    db.session.commit()
+
+                    return render_template( 'search/dbsearch.html', 
+                            current_dbsearch=current_dbsearch, 
+                            parent_dataset=parent_dataset, 
+                            sqt_files=sqt_files, 
+                            dta_files=dta_files, 
+                            search_params=search_params, 
+                            )
+
                 grouped_subtasks = {'complete': [task for task in celery_subtasks if task.status == 'SUCCESS'], 
                                     'pending_retry': [task for task in celery_subtasks if task.status in ('PENDING', 'RETRY')], 
                                     'failed': [task for task in celery_subtasks if task.status == 'FAILURE']
@@ -349,6 +370,12 @@ def view_dbsearch(dbsearch_pk):
                                     grouped_subtasks=grouped_subtasks, 
                                     )
 
+        # elif current_dbsearch.status == 'search complete':
+
+        #     # database search is complete; template should display an option for running DTASelect
+
+        #     pass # should render template with default values here...
+
         else:
 
             # unknown value for current_dbsearch.status 
@@ -396,10 +423,11 @@ def submit_dtaselect(dbsearch_pk):
     chained_tasks = combine_sqt_parts_task | make_filtered_fasta_task | dtaselect_task
     task_id = chained_tasks.apply_async()
 
-    # update dbsearch celery task ID
+    # update dbsearch celery_id and status
     # current_dbsearch.celery_id = str(task_id)
-    # db.session.add(current_dbsearch)
-    # db.session.commit()
+    current_dbsearch.status = 'running dtaselect'
+    db.session.add(current_dbsearch)
+    db.session.commit()
 
     return jsonify({'task_id': str(task_id)})
 
