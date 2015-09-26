@@ -56,7 +56,7 @@ def split_ms2_and_make_jobs(new_local_directory, params_dict):
     pass
 
 @celery.task(bind=True, name='biome_worker.submit_and_check_job', max_retries=3)
-def submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None):
+def submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None, dta_task=False):
     pass
 
 @celery.task(name='biome_worker.launch_submission_tasks')
@@ -69,4 +69,8 @@ def combine_sqt_parts(base_directory_name, params):
 
 @celery.task(name='biome_worker.make_filtered_fasta')
 def make_filtered_fasta(base_directory, params):
+    pass
+
+@celery.task(name='biome_worker.dtaselect_task')
+def dtaselect_task(base_directory, params):
     pass

@@ -266,7 +266,7 @@ def check_job_output(job_file_path, job_id):
                 ))
 
 @app.task(bind=True, name='biome_worker.submit_and_check_job', max_retries = 3)
-def submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None):
+def submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None, dta_task=False):
 
     ''' Submits using submit_pbs_job() and checks PBS job status (using drmaa)
         for proteomic search jobs
@@ -277,7 +277,7 @@ def submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None):
 
     def resubmit():
         try:
-            raise self.retry((job_file_path,), {'job_id': None}, countdown = randint(1,20))
+            raise self.retry((job_file_path,), {'job_id': None, 'dta_task':dta_task}, countdown = randint(1,20))
         except MaxRetriesExceededError:
             print('Job failed exceeded max_retry')
             raise # will also change task.status to FAILURE
@@ -315,7 +315,7 @@ def submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None):
         # don't count this status check as a celery task.retry attempt:
         self.request.retries -= 1
 
-        raise self.retry((job_file_path,), {'job_id': job_id}, countdown = randint(30,60))
+        raise self.retry((job_file_path,), {'job_id': job_id, 'dta_task':dta_task}, countdown = randint(30,60))
 
     elif job_status == 'failed':
         # unknown PBS job failure
@@ -324,13 +324,16 @@ def submit_and_check_job(self, job_file_path, job_id=None, old_task_info=None):
     else:
         # job_status == 'done'
 
-        # check job file for correct # of scans, check output for 'INFO: Done processing MS2:', etc.
-        # (if that fails, resubmit())
-        if check_job_output(job_file_path, job_id):
+        if dta_task:
             return 'Job succeeded: {}'.format(job_file_path)
         else:
-            print('Job {} completed but failed tests'.format(job_file_path))
-            resubmit()
+            # check job file for correct # of scans, check output for 'INFO: Done processing MS2:', etc.
+            # (if that fails, resubmit())
+            if check_job_output(job_file_path, job_id):
+                return 'Job succeeded: {}'.format(job_file_path)
+            else:
+                print('Job {} completed but failed tests'.format(job_file_path))
+                resubmit()
 
 @app.task(name='biome_worker.combine_sqt_parts')
 def combine_sqt_parts(base_directory_name, params):
@@ -402,3 +405,73 @@ def make_filtered_fasta(base_directory, params):
         print('Filtered FASTA file created successfully')
 
     return base_directory
+
+def make_dta_job_file(base_directory, dta_params):
+
+    ''' Makes a PBS job file for running 
+        DTASelect (uses dta_params to customize)
+
+        if successful, returns new job file path
+    '''
+
+    job_boilerplate = '\n'.join((   '#!/bin/bash',
+                                    '#PBS -l nodes=1:ppn={}'.format(8),
+                                    '#PBS -l cput={}:00:00'.format(192),
+                                    '#PBS -l walltime={}:00:00'.format(24),
+                                    '#PBS -j oe',
+                                    '#PBS -l mem={}gb'.format(dta_params['memgb']),
+                                    '#PBS -N "BM_DTASelect"', 
+                                    '#PBS -m n', # suppress job-related status emails from PBS admin
+                                    ))
+                    
+    base_job_file = dedent("""
+                    echo "################################################################################"
+                    echo "Running DTASelect at {base_directory}"
+                    echo "Running on node: `hostname`"
+                    echo "################################################################################"
+                    
+                    module load java/1.7.0_21
+                    cd {base_directory}
+                    echo $PBS_JOBID > ../dtajob.id
+                    java -Xmx{memgb}G -cp {dtaselect_classpath} DTASelect --quiet --brief --sfp {sfp} -p {ppp} > dtaselect.out
+                    STATUS=$?
+                    if [ $STATUS -ne 0 ]; then
+                      echo "DTASelect failed"; exit $STATUS
+                    else
+                      echo "Finished Successfully!"
+                    fi
+
+                    """).format(**dta_params)
+    job_file_path = os.path.join(base_directory, 'dtaselect.job')
+    with open(job_file_path, 'w') as f:
+        print('Writing job file: ' + job_file_path)
+        f.write(job_boilerplate + '\n' + base_job_file)
+
+    return job_file_path
+
+
+@app.task(name='biome_worker.dtaselect_task')
+def dtaselect_task(base_directory, params):
+
+    ''' Submit DTASelect job and monitor status using submit_and_check_job
+    '''
+
+    os.chdir(base_directory)
+
+    dta_params = {  'memgb': 24, 
+                    'dtaselect_classpath': params['dtaselect_classpath'], 
+                    'base_directory': base_directory, 
+                    'sfp': params['sfp'], 
+                    'ppp': params['ppp'], 
+                    }
+
+    job_file_path = make_dta_job_file(base_directory, dta_params)
+
+    new_submit_and_check_job = submit_and_check_job.apply_async(args=(job_file_path,), 
+                                                                kwargs=dict(dta_task=True), 
+                                                                queue='sandip', 
+                                                                )
+
+    return new_submit_and_check_job
+
+

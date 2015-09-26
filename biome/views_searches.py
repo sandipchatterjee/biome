@@ -390,10 +390,10 @@ def submit_dtaselect(dbsearch_pk):
 
     combine_sqt_parts_task = tasks.combine_sqt_parts.s(base_directory_name, params).set(queue='sandip')
     make_filtered_fasta_task = tasks.make_filtered_fasta.s(params).set(queue='sandip')
-    # dtaselect_task = tasks.dtaselect.s(params).set(queue='sandip')
+    dtaselect_task = tasks.dtaselect_task.s(params).set(queue='sandip')
 
-    chained_tasks = combine_sqt_parts_task | make_filtered_fasta_task
-    # chained_tasks = combine_sqt_parts_task | make_filtered_fasta_task | dtaselect_task
+    # chained_tasks = combine_sqt_parts_task | make_filtered_fasta_task
+    chained_tasks = combine_sqt_parts_task | make_filtered_fasta_task | dtaselect_task
     task_id = chained_tasks.apply_async()
 
     # update dbsearch celery task ID
