@@ -9,6 +9,7 @@ import glob
 import time
 import traceback
 import subprocess
+import make_filtered_fasta_helpers
 from celery import Celery, group
 from fileinput import FileInput
 from random import randint
@@ -390,29 +391,14 @@ def make_filtered_fasta(base_directory, params):
     ''' Make a filtered FASTA file for DTASelect
     '''
 
-    try:
-        # TODO: import this as a module and run instead of using subprocess
-        # TODO: update to use MongoDB URI instead of host/port
-        output = subprocess.check_output((  'python3', 
-                                            '/gpfs/home/gstupp/metaproteomics/cluster/make_filtered_database.py', # script path
-                                            '-s',           # create sequest.params
-                                            '--seqdb',      # ComPIL SeqDB database name
-                                            params['seqdb_name'], 
-                                            '--seqdbcoll',  # ComPIL SeqDB collection name
-                                            params['seqdbcoll'], 
-                                            '--protdb',     # ComPIL ProtDB database name
-                                            params['protdb_name'], 
-                                            '--protdbcoll', 
-                                            params['protdbcoll'], 
-                                            '--host',       # ComPIL hostname
-                                            'wl-cmadmin',   # [hard-coded for now, update to use MongoDB URI]
-                                            '--port',       # ComPIL port
-                                            '27018', 
-                                            ), cwd=base_directory)
-    except subprocess.CalledProcessError:
-        print('Error creating filtered FASTA file')
-        raise
-
-    print(output)
+    if make_filtered_fasta_helpers.run( mongodb_uri=params['mongodb_uri'], 
+                                        seqdb_name=params['seqdb_name'], 
+                                        seqdbcoll=params['seqdbcoll'], 
+                                        protdb_name=params['protdb_name'], 
+                                        protdbcoll=params['protdbcoll'], 
+                                        sequest=True, 
+                                        cwd=base_directory, 
+                                        ):
+        print('Filtered FASTA file created successfully')
 
     return base_directory
