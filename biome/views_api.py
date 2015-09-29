@@ -19,6 +19,77 @@ from biome import ( app,
                     views_plots, 
                     )
 
+@api.route('/mongos_status', methods=['GET', 'POST'])
+def mongos_status():
+
+    ''' API view for checking mongos status with a test query
+        (see biome_worker.check_mongos_status for details)
+
+        GET request: return jsonified information from database table
+
+        POST request: launch remote task to check mongos statuses on cluster
+    '''
+
+    # look up mongos names from database here:
+    mongos_hostnames = []
+
+    # hard-coded for now:
+    mongos_hostnames = ('imsb0501:27018', 
+                        'imsb0515:27018', 
+                        'imsb0601:27018', 
+                        'imsb0615:27018', 
+                        'node0097:27018', 
+                        'node0113:27018', 
+                        'node0129:27018', 
+                        'node0145:27018', 
+                        'node0401:27018', 
+                        'node0411:27018', 
+                        'node0421:27018', 
+                        'node0431:27018', 
+                        'node0441:27018', 
+                        'node0451:27018', 
+                        'node0461:27018', 
+                        'node0471:27018', 
+                        'node0481:27018', 
+                        'node0491:27018', 
+                        'node0501:27018', 
+                        'node0511:27018', 
+                        'node0521:27018', 
+                        'node0531:27018', 
+                        'node0541:27018', 
+                        'node0551:27018', 
+                        'node0561:27018', 
+                        'node0571:27018', 
+                        'node0581:27018', 
+                        'node0591:27018', 
+                        'node0601:27018', 
+                        'node0617:27018', 
+                        'node0633:27018', 
+                        'node0649:27018', 
+                        'node0665:27018', 
+                        'node0681:27018', 
+                        'node0922:27018', 
+                        'node0937:27018', 
+                        'node0953:27018', 
+                        'node0969:27018', 
+                        'node0985:27018', 
+                        'node1001:27018', 
+                        'nodea1301:27018',  
+                        'nodea1331:27018',  
+                        'nodea1401:27018',  
+                        'nodea1431:27018',  
+                        )
+
+    if request.method == 'POST':
+
+        task_id = tasks.check_mongos_status.apply_async(queue='sandip', 
+                                                        args=[  mongos_hostnames, 
+                                                                'MassDB_072114', 
+                                                                'MassDB_072114'])
+        return jsonify({'task_id': str(task_id)})
+    else:
+        return jsonify({'mongos_hostname1': 100, 'mongos_hostname2': 300})
+
 @api.route('/dataset/<dataset_pk>')
 def dataset_quickinfo(dataset_pk):
 

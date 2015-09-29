@@ -74,3 +74,7 @@ def make_filtered_fasta(base_directory, params):
 @celery.task(name='biome_worker.dtaselect_task')
 def dtaselect_task(base_directory, params):
     pass
+
+@celery.task(name='biome_worker.check_mongos_status')
+def check_mongos_status(mongos_hostnames, massdb_name, massdbcoll):
+    pass

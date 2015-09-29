@@ -44,3 +44,12 @@ def test_API():
     
     return json.dumps(json_obj)
 
+@app.route('/mongos_status')
+def mongos_status():
+
+    ''' View that retrieves data for mongos response times
+        (uses API view mongos_status)
+    '''
+
+    return render_template('mongos_status.html', 
+                            )

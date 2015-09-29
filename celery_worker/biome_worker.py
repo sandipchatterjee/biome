@@ -7,6 +7,7 @@ import os
 import sys
 import glob
 import time
+import timeit
 import traceback
 import subprocess
 import make_filtered_fasta_helpers
@@ -23,6 +24,12 @@ except ImportError as exc:
     print(exc)
 except RuntimeError as exc:
     # Could not find drmaa library
+    print(exc)
+
+try:
+    import pymongo
+except ImportError as exc
+    print("Couldn't import pymongo... some tasks not functional")
     print(exc)
 
 ex_path = os.path.split(os.path.abspath(__file__))[0] # the directory in which this script lives
@@ -474,4 +481,35 @@ def dtaselect_task(base_directory, params):
 
     return new_submit_and_check_job
 
+@app.task(name='biome_worker.check_mongos_status')
+def check_mongos_status(mongos_hostnames, massdb_name, massdbcoll):
 
+    ''' Checks mongos connection status for each hostname in
+        mongos_hostnames, which is a list of strings formatted like:
+        ['node1234:27018', 'node3456:27018', ...]
+
+        Performs a small query on MongoDB database 'massdb_name.massdbcoll'
+
+        Returns a dict of query times (in milliseconds): 
+        {'mongos_hostname1':query_time_ms, 'mongos_hostname2':query_time_ms, ...}
+    '''
+
+    time_dict = {}
+    setup_command_string = "from pymongo import MongoClient; db=MongoClient('mongodb://{mongodb_hostname}', socketTimeoutMS = 10*1000, connectTimeoutMS = 10*1000, serverSelectionTimeoutMS = 10*1000)['{massdb_name}']['{massdbcoll}']"
+    query_command_string = "list(db.find({'$and':[{'_id':{'$gte':1000000}}, {'_id':{'$lte':1000500}}]}))"
+    number_of_repeats = 3
+
+    for mongos_hostname in mongos_hostnames:
+        try:
+            query_time = timeit.timeit( query_command_string, 
+                                        number=number_of_repeats, 
+                                        setup=setup_command_string.format(**dict(   massdb_name=massdb_name, 
+                                                                                    massdbcoll=massdbcoll, 
+                                                                                    mongodb_hostname=mongos_hostname)))
+            time_dict[mongos_hostname] = int((query_time/number_of_repeats)*1000) # convert to integer milliseconds
+        except (pymongo.errors.ServerSelectionTimeoutError, pymongo.errors.ExecutionTimeout):
+            time_dict[mongos_hostname] = -1
+        except pymongo.errors.ConnectionFailure:
+            time_dict[mongos_hostname] = -2
+
+    return time_dict
